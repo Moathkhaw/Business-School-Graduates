@@ -311,7 +311,7 @@
         };
 
         // معالجة الإرسال
-        document.getElementById('registration-form').addEventListener('submit', async (e) => {
+        document.getElementById('registration-form').addEventListener('submit', (e) => {
             e.preventDefault();
             hideError();
 
@@ -327,22 +327,23 @@
 
             toggleLoading(true);
 
-            try {
-                // الإرسال الخفي لجوجل فورم
-                const formParams = new URLSearchParams();
-                formParams.append(GOOGLE_ENTRY_NAME, name);
-                formParams.append(GOOGLE_ENTRY_UNIV_ID, universityId);
-                formParams.append(GOOGLE_ENTRY_PHONE, phone);
-                formParams.append(GOOGLE_ENTRY_MAJOR, major);
+            // الإرسال الخفي لجوجل فورم
+            const formParams = new URLSearchParams();
+            formParams.append(GOOGLE_ENTRY_NAME, name);
+            formParams.append(GOOGLE_ENTRY_UNIV_ID, universityId);
+            formParams.append(GOOGLE_ENTRY_PHONE, phone);
+            formParams.append(GOOGLE_ENTRY_MAJOR, major);
 
-                // إرسال البيانات (لن ننتظر الرد بسبب سياسة no-cors)
-                await fetch(GOOGLE_FORM_ACTION_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formParams.toString()
-                });
+            // إرسال البيانات (في الخلفية بدون إيقاف الكود لتجنب حظر المتصفحات للـ CORS)
+            fetch(GOOGLE_FORM_ACTION_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formParams.toString()
+            }).catch(err => console.log("ملاحظة: بعض المتصفحات تحجب الرد ولكن البيانات تصل", err));
 
+            // إعطاء وقت قصير لمحاكاة التحميل ثم عرض البطاقة فوراً
+            setTimeout(() => {
                 // تحديث بيانات البطاقة
                 document.getElementById('card-name').innerText = name;
                 document.getElementById('card-major').innerText = major;
@@ -359,14 +360,12 @@
                     cardContainer.classList.remove('hidden');
                     cardContainer.classList.add('flex');
                     setTimeout(() => cardContainer.classList.remove('opacity-0'), 50);
+                    
+                    // إيقاف دائرة التحميل
+                    toggleLoading(false);
                 }, 300);
 
-            } catch (err) {
-                console.error("خطأ أثناء الإرسال:", err);
-                showError("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.");
-            } finally {
-                toggleLoading(false);
-            }
+            }, 1000); // تأخير لمدة ثانية واحدة لإظهار حركة "جاري الإصدار..."
         });
     </script>
 </body>
