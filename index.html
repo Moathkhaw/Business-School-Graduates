@@ -254,59 +254,14 @@
         </div>
     </footer>
 
-    <!-- سكربت جافاسكربت وتهيئة Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // ==========================================
-        // ⚠️ إعدادات Firebase الخاصة بك (مهم جداً عند الرفع إلى GitHub)
-        // عند استضافة الموقع على جيت هب، يجب استبدال الكود بداخل الأقواس {} 
-        // بمفاتيح Firebase الخاصة بمشروعك (apiKey, projectId, ...الخ)
-        // لكي تعمل ميزة الأرقام التسلسلية بشكل صحيح.
-        // ==========================================
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            // ضع إعدادات مشروعك الحقيقي هنا لاحقاً:
-            // apiKey: "YOUR_API_KEY",
-            // authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            // projectId: "YOUR_PROJECT_ID",
-            // ...
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        
-        // مسار الحفظ (يمكنك تغييره لاحقاً ليكون 'students' مثلاً بدلاً من 'artifacts/...')
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-university-app';
-
+    <!-- سكربت جافاسكربت لإرسال البيانات وعرض البطاقة -->
+    <script>
         // إعدادات جوجل فورم
         const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdPXI8CcmqVF4FYOjCKiWfY4wH_fFU6n7D1-IamqraJJbKytg/formResponse";
         const GOOGLE_ENTRY_NAME = "entry.678643942";
         const GOOGLE_ENTRY_UNIV_ID = "entry.2015125377";
         const GOOGLE_ENTRY_PHONE = "entry.1782264396";
         const GOOGLE_ENTRY_MAJOR = "entry.1470881859";
-
-        let currentUser = null;
-
-        // تهيئة المصادقة
-        const initAuth = async () => {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.error("خطأ في المصادقة:", err);
-                showError("تأكد من إعدادات قاعدة البيانات (Firebase) الخاصة بك.");
-            }
-        };
-        initAuth();
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-        });
 
         // دوال التحكم بالواجهة
         const showError = (msg) => {
@@ -360,11 +315,6 @@
             e.preventDefault();
             hideError();
 
-            if (!currentUser) {
-                showError("أنت غير متصل بقاعدة البيانات. يرجى مراجعة إعدادات Firebase.");
-                return;
-            }
-
             const name = document.getElementById('input-name').value;
             const universityId = document.getElementById('input-universityId').value;
             const phone = document.getElementById('input-phone').value;
@@ -378,14 +328,6 @@
             toggleLoading(true);
 
             try {
-                // الحفظ في قاعدة البيانات
-                const registrationsRef = collection(db, 'artifacts', appId, 'public', 'data', 'registrations');
-                await addDoc(registrationsRef, {
-                    name, universityId, phone, major,
-                    userId: currentUser.uid,
-                    createdAt: serverTimestamp()
-                });
-
                 // الإرسال الخفي لجوجل فورم
                 const formParams = new URLSearchParams();
                 formParams.append(GOOGLE_ENTRY_NAME, name);
@@ -393,12 +335,13 @@
                 formParams.append(GOOGLE_ENTRY_PHONE, phone);
                 formParams.append(GOOGLE_ENTRY_MAJOR, major);
 
-                fetch(GOOGLE_FORM_ACTION_URL, {
+                // إرسال البيانات (لن ننتظر الرد بسبب سياسة no-cors)
+                await fetch(GOOGLE_FORM_ACTION_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: formParams.toString()
-                }).catch(err => console.error("لم يتم الارسال لجوجل فورم:", err));
+                });
 
                 // تحديث بيانات البطاقة
                 document.getElementById('card-name').innerText = name;
@@ -406,7 +349,7 @@
                 document.getElementById('card-universityId').innerText = universityId;
                 document.getElementById('card-phone').innerText = phone;
 
-                // تبديل الواجهة لعرض البطاقة
+                // تبديل الواجهة لعرض البطاقة بسلاسة
                 const formContainer = document.getElementById('registration-form-container');
                 const cardContainer = document.getElementById('card-container');
                 
@@ -419,8 +362,8 @@
                 }, 300);
 
             } catch (err) {
-                console.error("خطأ أثناء الحفظ:", err);
-                showError("حدث خطأ أثناء حفظ البيانات. هل قمت بإعداد Firebase بشكل صحيح؟");
+                console.error("خطأ أثناء الإرسال:", err);
+                showError("حدث خطأ أثناء إرسال البيانات. يرجى المحاولة مرة أخرى.");
             } finally {
                 toggleLoading(false);
             }
