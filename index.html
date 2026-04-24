@@ -4,15 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بوابة الاستعلام | قمة الأعمال 2026</title>
-    <!-- خطوط جوجل -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- مكتبة الأيقونات (FontAwesome) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- مكتبة معالجة البيانات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <!-- مكتبة الاحتفال (Confetti) -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <!-- مكتبة التأثير ثلاثي الأبعاد -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     
     <style>
@@ -32,7 +27,7 @@
             background-image: radial-gradient(circle at center, var(--primary-light) 0%, var(--primary-dark) 60%, #000000 100%);
             color: var(--text-light);
             margin: 0;
-            padding: 20px 20px 80px 20px; /* مسافة إضافية في الأسفل لشريط الإشعارات */
+            padding: 20px 20px 80px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -42,10 +37,7 @@
             box-sizing: border-box;
         }
 
-        /* الأشكال العائمة المتفاعلة */
-        .bg-shape {
-            position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; transition: transform 0.2s ease-out;
-        }
+        .bg-shape { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; transition: transform 0.2s ease-out; }
         .shape-1 { width: 400px; height: 400px; background: rgba(212, 175, 55, 0.15); top: -10%; left: -5%; }
         .shape-2 { width: 500px; height: 500px; background: rgba(56, 189, 248, 0.1); bottom: -10%; right: -5%; }
 
@@ -119,7 +111,6 @@
         .success-box { background-color: #f0fdf4; color: #166534; border: 2px solid #bbf7d0; box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.1); }
         .error-box { background-color: #fef2f2; color: #991b1b; border: 2px solid #fecaca; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1); }
         
-        /* تصميم الصورة الرمزية (Avatar) */
         .user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .avatar {
             width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #fef08a);
@@ -127,7 +118,6 @@
             font-size: 1.8rem; font-weight: 800; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(212,175,55,0.4);
         }
 
-        /* تصميم أزرار الإجراءات (التحميل والتقويم) */
         .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .btn-action {
             flex: 1; min-width: 140px; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 14px;
@@ -152,7 +142,6 @@
             width: 100%; box-sizing: border-box; transform: translateZ(20px);
         }
 
-        /* شريط الإشعارات الحي (Live Action Ticker) */
         .ticker-wrap {
             position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
             border-top: 2px solid var(--gold); overflow: hidden; height: 45px; line-height: 45px; z-index: 100;
@@ -169,7 +158,6 @@
 </head>
 <body>
 
-    <!-- أشكال الخلفية -->
     <div class="bg-shape shape-1" id="shape1"></div>
     <div class="bg-shape shape-2" id="shape2"></div>
 
@@ -185,7 +173,6 @@
         </div>
     </div>
 
-    <!-- تفعيل التأثير ثلاثي الأبعاد على البطاقة -->
     <div class="card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
         <h2><i class="fa-solid fa-id-card-clip" style="color: var(--gold); margin-left: 8px;"></i>تحقق من بياناتك</h2>
         
@@ -221,7 +208,6 @@
         <div id="result-box"></div>
     </div>
 
-    <!-- شريط الإشعارات الحي -->
     <div class="ticker-wrap" dir="rtl">
         <div class="ticker">
             <span class="ticker-item"><i class="fa-solid fa-fire"></i> إقبال كبير على التسجيل! المقاعد محدودة جداً</span>
@@ -233,15 +219,13 @@
     </div>
 
     <script>
-        // تفعيل حركة الخلفية مع الماوس
         document.addEventListener('mousemove', function(e) {
             const x = e.clientX / window.innerWidth; const y = e.clientY / window.innerHeight;
             document.getElementById('shape1').style.transform = `translate(${x * 40}px, ${y * 40}px)`;
             document.getElementById('shape2').style.transform = `translate(-${x * 40}px, -${y * 40}px)`;
         });
 
-        // 1. العداد التنازلي
-        const summitDate = new Date("May 15, 2026 10:00:00").getTime(); 
+        const summitDate = new Date("May 10, 2026 10:00:00").getTime(); 
         const countdownFunction = setInterval(function() {
             const now = new Date().getTime(); const distance = summitDate - now;
             if (distance < 0) {
@@ -256,9 +240,7 @@
             document.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
         }, 1000);
 
-        // =================================================================
-        // 2. قاعدة البيانات المدمجة
-        // =================================================================
+        // تم تحديث القائمة أدناه
         const myDataString = `الاسم,التخصص,الرقم الجامعي,الهاتف
 عائشة سعود محمد العياش,التسويق الرقمي,2200514122,775828571
 سيرينا اسامة سلامة,تسويق رقمي,2200514172,788478336
@@ -499,14 +481,19 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
 نور حمد ناصر المزاودة,تمويل ومصارف,2200503251,0775540571
 هبه عطالله عيد العليق,إدراة اعمال,2200502056,0780767826
 هبه عوده محمد درويش,إدارة الأعمال,2200502199,0799470802
-سالم محمد سالم المصطفى,المحاسبة,2300504003,0772433952`;
+سالم محمد سالم المصطفى,المحاسبة,2300504003,0772433952
+حسين حسام حسين الترك,التسويق الرقمي,2200514057,795002015
+حسن وليد النعيمات,ادارة الاعمال,2200502226,790887013
+سعد وليد النعيمات,ادارة الاعمال,2200502227,795663128
+عبدالله احمد محمد عريقات,التمويل والمصارف,2200503033,787442785
+ضحى سيف يونس الراديدة,نظم المعلومات الماليه المصرفيه,2200511190,781929632
+عبير عبد الكريم علي مصلح,نظم المعلومات ماليه ومصرفيه,2200511112,962785292465`;
 
         let db = [];
         const MY_PHONE = "962772536229";
 
         Papa.parse(myDataString, { header: true, complete: function(res) { db = res.data; }});
 
-        // 3. نظام الأصوات (Web Audio API)
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
         function playSound(type) {
@@ -523,9 +510,9 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.1);
             } else if (type === 'success') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
-                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
                 gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
                 osc.start(); osc.stop(audioCtx.currentTime + 0.5);
             } else if (type === 'error') {
@@ -535,7 +522,6 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
             }
         }
 
-        // 4. دالة استخراج الصورة الرمزية (Initials Avatar)
         function getInitials(name) {
             if(!name) return "?";
             let parts = name.trim().split(' ');
@@ -543,26 +529,21 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
             return parts[0][0];
         }
 
-        // 5. دالة توليد بطاقة المشاركة كصورة قابلة للتحميل (Canvas)
         function generateBadgeDataURL(name, major) {
             const canvas = document.createElement('canvas');
-            canvas.width = 1080; canvas.height = 1920; // حجم ستوري انستغرام
+            canvas.width = 1080; canvas.height = 1920; 
             const ctx = canvas.getContext('2d');
 
-            // خلفية متدرجة
             const grad = ctx.createLinearGradient(0,0,0,1920);
             grad.addColorStop(0, '#0f172a'); grad.addColorStop(1, '#020617');
             ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
 
-            // أشكال ذهبية
             ctx.fillStyle = 'rgba(212, 175, 55, 0.1)';
             ctx.beginPath(); ctx.arc(0, 0, 600, 0, Math.PI*2); ctx.fill();
             ctx.beginPath(); ctx.arc(1080, 1920, 800, 0, Math.PI*2); ctx.fill();
 
-            // إطار ذهبي
             ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 15; ctx.strokeRect(50, 50, 980, 1820);
 
-            // النصوص
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             
             ctx.fillStyle = '#d4af37'; ctx.font = 'bold 90px Arial, sans-serif';
@@ -583,7 +564,6 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
             return canvas.toDataURL('image/png');
         }
 
-        // إطلاق القصاصات الملونة
         function triggerConfetti() {
             var duration = 3 * 1000; var end = Date.now() + duration;
             (function frame() {
@@ -593,9 +573,8 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
             }());
         }
 
-        // دالة البحث الرئيسية
         function runSearch() {
-            playSound('click'); // تشغيل صوت الضغطة
+            playSound('click'); 
             const idVal = document.getElementById('idInput').value.trim();
             const phoneVal = document.getElementById('phoneInput').value.trim();
             const resBox = document.getElementById('result-box');
@@ -624,7 +603,7 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
                 resBox.style.display = "block";
 
                 if (match) {
-                    playSound('success'); // صوت النجاح
+                    playSound('success'); 
                     triggerConfetti();
                     resBox.className = "success-box";
                     
@@ -632,11 +611,10 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
                     const initials = getInitials(studentName);
                     const badgeDataUrl = generateBadgeDataURL(studentName, match["التخصص"] || "تخصص غير محدد");
                     
-                    // توليد رابط تقويم جوجل
                     const eventTitle = encodeURIComponent("قمة الأعمال 2026 - حضور الفعالية");
                     const eventDetails = encodeURIComponent("تهانينا! أنت مسجل رسمياً في قمة الأعمال 2026.");
                     const eventLocation = encodeURIComponent("عمان، الأردن");
-                    const googleCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=20260515T070000Z/20260515T140000Z&details=${eventDetails}&location=${eventLocation}`;
+                    const googleCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=20260510T070000Z/20260510T140000Z&details=${eventDetails}&location=${eventLocation}`;
 
                     resBox.innerHTML = `
                         <h3 style="margin-top:0; color: #166534;"><i class="fa-solid fa-face-smile-beam"></i> تم تأكيد حضورك بنجاح!</h3>
@@ -665,7 +643,7 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
                     `;
 
                 } else {
-                    playSound('error'); // صوت الخطأ
+                    playSound('error'); 
                     let msg = encodeURIComponent("مرحباً معاذ، بياناتي غير مدرجة في نظام قمة الأعمال. \nالاسم: \nالرقم الجامعي: \nالهاتف: \nالتخصص: \n(مرفق صورة الحوالة)");
                     resBox.className = "error-box";
                     resBox.innerHTML = `
