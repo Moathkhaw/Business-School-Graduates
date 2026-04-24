@@ -4,8 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بوابة الاستعلام | قمة الأعمال 2026</title>
+    <!-- خطوط جوجل -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- مكتبة الأيقونات (FontAwesome) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة معالجة البيانات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <!-- مكتبة الاحتفال (Confetti) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- مكتبة التأثير ثلاثي الأبعاد -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    
     <style>
         :root {
             --primary-dark: #0f172a; 
@@ -14,122 +23,155 @@
             --gold-hover: #b5952f;
             --text-light: #f8fafc;
             --text-dark: #334155;
-            --bg-color: #f1f5f9;
+            --bg-color: #020617;
         }
 
         body {
             font-family: 'Cairo', sans-serif;
             background-color: var(--bg-color);
-            background-image: radial-gradient(circle at top, var(--primary-light) 0%, var(--primary-dark) 40%, var(--primary-dark) 100%);
+            background-image: radial-gradient(circle at center, var(--primary-light) 0%, var(--primary-dark) 60%, #000000 100%);
             color: var(--text-light);
             margin: 0;
-            padding: 20px;
+            padding: 20px 20px 80px 20px; /* مسافة إضافية في الأسفل لشريط الإشعارات */
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            box-sizing: border-box;
         }
 
-        .header-section { text-align: center; margin-bottom: 30px; margin-top: 20px; }
-        .header-section h1 { color: var(--gold); font-size: 2.5rem; margin-bottom: 5px; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .header-section p { color: #cbd5e1; font-size: 1.1rem; margin-top: 0; }
+        /* الأشكال العائمة المتفاعلة */
+        .bg-shape {
+            position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; transition: transform 0.2s ease-out;
+        }
+        .shape-1 { width: 400px; height: 400px; background: rgba(212, 175, 55, 0.15); top: -10%; left: -5%; }
+        .shape-2 { width: 500px; height: 500px; background: rgba(56, 189, 248, 0.1); bottom: -10%; right: -5%; }
 
-        .countdown-container { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header-section { text-align: center; margin-bottom: 30px; margin-top: 20px; z-index: 10; animation: fadeInUp 0.8s ease-out; }
+        .header-section h1 { color: var(--gold); font-size: 2.8rem; margin-bottom: 5px; text-shadow: 0 4px 20px rgba(212, 175, 55, 0.5); letter-spacing: 1px; }
+        .header-section p { color: #cbd5e1; font-size: 1.2rem; margin-top: 0; font-weight: 600; }
+
+        .countdown-container { display: flex; justify-content: center; gap: 15px; margin-top: 25px; direction: ltr;}
         .time-box {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 12px;
-            padding: 15px;
-            width: 70px;
-            text-align: center;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px; padding: 15px; width: 80px;
+            text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); position: relative; overflow: hidden;
         }
-        .time-box span { display: block; font-size: 2rem; font-weight: 800; color: var(--gold); }
-        .time-box small { font-size: 0.85rem; color: #e2e8f0; font-weight: 600; }
+        .time-box::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-20deg); animation: shine 3s infinite;
+        }
+        @keyframes shine { 100% { left: 200%; } }
+        
+        .time-box span { display: block; font-size: 2.2rem; font-weight: 800; color: var(--gold); }
+        .time-box small { font-size: 0.9rem; color: #e2e8f0; font-weight: 700; text-transform: uppercase;}
 
         .card {
-            background: #ffffff;
-            color: var(--text-dark);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            max-width: 450px;
-            width: 100%;
-            position: relative;
-            z-index: 10;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            color: var(--text-dark); padding: 40px; border-radius: 24px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
+            max-width: 480px; width: 100%; position: relative; z-index: 10; box-sizing: border-box;
+            animation: fadeInUp 1s ease-out 0.2s backwards; border: 1px solid rgba(255, 255, 255, 0.2); transform-style: preserve-3d;
         }
 
-        .card h2 {
-            text-align: center;
-            color: var(--primary-dark);
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-weight: 800;
-            border-bottom: 2px solid var(--gold);
-            padding-bottom: 10px;
-            display: inline-block;
-            width: 100%;
+        .card h2 { text-align: center; color: var(--primary-dark); margin-top: 0; margin-bottom: 20px; font-weight: 800; font-size: 1.8rem; transform: translateZ(30px); }
+
+        #custom-alert {
+            display: none; background-color: #fee2e2; color: #991b1b; padding: 12px; border-radius: 10px; text-align: center;
+            font-weight: 700; font-size: 14px; margin-bottom: 20px; border: 1px solid #fecaca; animation: fadeInUp 0.3s ease-out;
         }
 
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary-dark); }
+        .form-group { margin-bottom: 20px; position: relative; transform: translateZ(20px); }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary-dark); font-size: 0.95rem;}
+        
+        .input-wrapper { position: relative; }
+        .input-wrapper i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem; transition: color 0.3s; }
         input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 16px;
-            box-sizing: border-box;
-            background-color: #f8fafc;
-            transition: all 0.3s;
+            width: 100%; padding: 15px 45px 15px 15px; border: 2px solid #e2e8f0; border-radius: 12px;
+            font-family: 'Cairo', sans-serif; font-size: 16px; box-sizing: border-box; background-color: #f8fafc;
+            transition: all 0.3s; color: var(--primary-dark); font-weight: 600;
         }
-        input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); background-color: #fff; }
+        input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15); background-color: #fff; }
+        input:focus + i { color: var(--gold); }
 
-        .or-divider { text-align: center; margin: 25px 0; color: #94a3b8; font-weight: 700; position: relative; }
-        .or-divider::before, .or-divider::after { content: ""; position: absolute; top: 50%; width: 40%; height: 2px; background-color: #f1f5f9; }
-        .or-divider::before { right: 0; }
-        .or-divider::after { left: 0; }
+        .or-divider { text-align: center; margin: 25px 0; color: #94a3b8; font-weight: 700; position: relative; font-size: 0.9rem; transform: translateZ(20px);}
+        .or-divider::before, .or-divider::after { content: ""; position: absolute; top: 50%; width: 38%; height: 2px; background-color: #e2e8f0; }
+        .or-divider::before { right: 0; } .or-divider::after { left: 0; }
 
+        .btn-container { position: relative; transform: translateZ(30px); }
         button {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-hover) 100%);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-size: 18px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            width: 100%; padding: 18px; background: linear-gradient(135deg, var(--gold) 0%, #a38222 100%);
+            color: #fff; border: none; border-radius: 14px; font-size: 18px; font-weight: 800; cursor: pointer;
+            transition: all 0.3s ease; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.5);
+            display: flex; justify-content: center; align-items: center; gap: 10px; position: relative; overflow: hidden;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6); }
+        button:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(212, 175, 55, 0.6); }
+        button:active { transform: translateY(0); }
+        button:disabled { opacity: 0.9; cursor: not-allowed; transform: none; }
 
-        #result-box { margin-top: 25px; padding: 20px; border-radius: 12px; display: none; }
-        .success-box { background-color: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
-        .error-box { background-color: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .progress-bar { position: absolute; bottom: 0; left: 0; height: 4px; background-color: #fff; width: 0%; transition: width 1.2s ease-in-out; opacity: 0.8; }
+
+        #result-box { margin-top: 25px; padding: 25px; border-radius: 16px; display: none; animation: fadeInUp 0.5s ease-out; transform: translateZ(20px); }
+        .success-box { background-color: #f0fdf4; color: #166534; border: 2px solid #bbf7d0; box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.1); }
+        .error-box { background-color: #fef2f2; color: #991b1b; border: 2px solid #fecaca; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1); }
+        
+        /* تصميم الصورة الرمزية (Avatar) */
+        .user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .avatar {
+            width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #fef08a);
+            color: var(--primary-dark); display: flex; justify-content: center; align-items: center;
+            font-size: 1.8rem; font-weight: 800; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(212,175,55,0.4);
+        }
+
+        /* تصميم أزرار الإجراءات (التحميل والتقويم) */
+        .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+        .btn-action {
+            flex: 1; min-width: 140px; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 14px;
+            text-align: center; text-decoration: none; display: flex; justify-content: center; align-items: center; gap: 8px;
+            transition: all 0.3s; color: #fff; box-sizing: border-box;
+        }
+        .btn-download { background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 10px rgba(99,102,241,0.3); }
+        .btn-download:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-2px); }
+        .btn-calendar { background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 4px 10px rgba(14,165,233,0.3); }
+        .btn-calendar:hover { background: linear-gradient(135deg, #0284c7, #0369a1); transform: translateY(-2px); }
         
         .wa-btn {
-            display: block;
-            margin-top: 15px;
-            padding: 14px;
-            background-color: #25D366;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 800;
-            text-align: center;
+            display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 15px; padding: 15px;
+            background-color: #25D366; color: white; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px;
+            transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(37, 211, 102, 0.3); width: 100%; box-sizing: border-box;
         }
-        .wa-btn:hover { background-color: #1ea952; }
+        .wa-btn:hover { background-color: #1ea952; transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(37, 211, 102, 0.4); }
 
-        #status-msg { text-align: center; font-size: 14px; font-weight: 700; margin-bottom: 20px; color: #d97706; }
-        .status-ok { color: #10b981 !important; }
-        .status-err { color: #ef4444 !important; }
-    </script>
+        #status-msg { 
+            text-align: center; font-size: 15px; font-weight: 800; margin-bottom: 25px; color: #059669; background: #d1fae5;
+            padding: 10px; border-radius: 8px; display: inline-flex; justify-content: center; align-items: center; gap: 8px;
+            width: 100%; box-sizing: border-box; transform: translateZ(20px);
+        }
+
+        /* شريط الإشعارات الحي (Live Action Ticker) */
+        .ticker-wrap {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            border-top: 2px solid var(--gold); overflow: hidden; height: 45px; line-height: 45px; z-index: 100;
+        }
+        .ticker {
+            display: inline-block; white-space: nowrap; font-weight: 700; color: #e2e8f0; font-size: 15px;
+            animation: ticker 30s linear infinite; padding-left: 100%;
+        }
+        .ticker-item { margin-right: 40px; color: #fff; }
+        .ticker-item i { color: var(--gold); margin-left: 8px; }
+        @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
+
+    </style>
 </head>
 <body>
+
+    <!-- أشكال الخلفية -->
+    <div class="bg-shape shape-1" id="shape1"></div>
+    <div class="bg-shape shape-2" id="shape2"></div>
 
     <div class="header-section">
         <h1>قمة الأعمال 2026</h1>
@@ -143,126 +185,502 @@
         </div>
     </div>
 
-    <div class="card">
-        <h2>تحقق من بياناتك</h2>
+    <!-- تفعيل التأثير ثلاثي الأبعاد على البطاقة -->
+    <div class="card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
+        <h2><i class="fa-solid fa-id-card-clip" style="color: var(--gold); margin-left: 8px;"></i>تحقق من بياناتك</h2>
         
-        <div id="status-msg">جاري الاتصال بقاعدة البيانات... ⏳</div>
+        <div id="status-msg"><i class="fa-solid fa-circle-check"></i> الأنظمة جاهزة للبحث</div>
+
+        <div id="custom-alert"><i class="fa-solid fa-triangle-exclamation"></i> يرجى إدخال الرقم الجامعي أو رقم الهاتف للبحث.</div>
 
         <div class="form-group">
             <label>الرقم الجامعي</label>
-            <input type="number" id="idInput" placeholder="أدخل رقمك الجامعي هنا">
+            <div class="input-wrapper">
+                <input type="number" id="idInput" placeholder="أدخل رقمك الجامعي هنا">
+                <i class="fa-solid fa-hashtag"></i>
+            </div>
         </div>
 
         <div class="or-divider">أو</div>
 
         <div class="form-group">
             <label>رقم الهاتف</label>
-            <input type="number" id="phoneInput" placeholder="07XXXXXXXX">
+            <div class="input-wrapper">
+                <input type="number" id="phoneInput" placeholder="07XXXXXXXX">
+                <i class="fa-solid fa-phone"></i>
+            </div>
         </div>
 
-        <button onclick="runSearch()">استعلام الآن</button>
+        <div class="btn-container">
+            <button id="searchBtn" onclick="runSearch()">
+                <i class="fa-solid fa-magnifying-glass"></i> استعلام الآن
+                <div class="progress-bar" id="btnProgress"></div>
+            </button>
+        </div>
 
         <div id="result-box"></div>
     </div>
 
+    <!-- شريط الإشعارات الحي -->
+    <div class="ticker-wrap" dir="rtl">
+        <div class="ticker">
+            <span class="ticker-item"><i class="fa-solid fa-fire"></i> إقبال كبير على التسجيل! المقاعد محدودة جداً</span>
+            <span class="ticker-item"><i class="fa-solid fa-star"></i> سيرينا من تخصص التسويق أكدت حضورها للتو!</span>
+            <span class="ticker-item"><i class="fa-solid fa-bolt"></i> مفاجآت كبرى وضيوف شرف بانتظاركم في القمة</span>
+            <span class="ticker-item"><i class="fa-solid fa-check-double"></i> عبدالرحمن من التسويق الرقمي حجز مقعده الآن</span>
+            <span class="ticker-item"><i class="fa-solid fa-clock"></i> لا تفوت الفرصة، تأكد من بياناتك قبل إغلاق الأنظمة</span>
+        </div>
+    </div>
+
     <script>
-        // 1. برمجة العداد التنازلي
+        // تفعيل حركة الخلفية مع الماوس
+        document.addEventListener('mousemove', function(e) {
+            const x = e.clientX / window.innerWidth; const y = e.clientY / window.innerHeight;
+            document.getElementById('shape1').style.transform = `translate(${x * 40}px, ${y * 40}px)`;
+            document.getElementById('shape2').style.transform = `translate(-${x * 40}px, -${y * 40}px)`;
+        });
+
+        // 1. العداد التنازلي
         const summitDate = new Date("May 15, 2026 10:00:00").getTime(); 
         const countdownFunction = setInterval(function() {
-            const now = new Date().getTime();
-            const distance = summitDate - now;
+            const now = new Date().getTime(); const distance = summitDate - now;
+            if (distance < 0) {
+                clearInterval(countdownFunction);
+                document.getElementById("days").innerText = "00"; document.getElementById("hours").innerText = "00";
+                document.getElementById("minutes").innerText = "00"; document.getElementById("seconds").innerText = "00";
+                return;
+            }
             document.getElementById("days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
             document.getElementById("hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
             document.getElementById("minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
             document.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
-            if (distance < 0) clearInterval(countdownFunction);
         }, 1000);
 
         // =================================================================
-        // 2. الربط عبر رابط API المطورين الخاص بجوجل شيت (لتخطي الحظر)
+        // 2. قاعدة البيانات المدمجة
         // =================================================================
+        const myDataString = `الاسم,التخصص,الرقم الجامعي,الهاتف
+عائشة سعود محمد العياش,التسويق الرقمي,2200514122,775828571
+سيرينا اسامة سلامة,تسويق رقمي,2200514172,788478336
+ديما سلطان كامل الخزاعله,محاسبه وقانون الأعمال,2200509075,792931227
+بشرى ايمن عبدالحميد خليل,محاسبة,2200504046,791592708
+سيلينا سعيد محمد وهدان,نظم معلومات محاسبية,2200508008,785247057
+مادلين محمد عفيف الخطيب,نظم المعلومات المالية والمصرفية,2200511091,782856822
+عبد الرحمن كمال رمضان خير الدين,التسويق الرقمي,2200514035,797515808
+مرح كامل اسعد بدران,تمويل ومصارف,2200503200,780239983
+رهف أبراهيم سعود السعادي,التسويق الرقمي,2200514214,776744506
+براءة جلال محمد ياسر التميمي,ادارة اعمال,2200502134,782129531
+راما محمد حسن علاونه,محاسبه,2200504217,790119367
+ديانا بشير قاسم عساف,التمويل والمصارف,2200503219,781134718
+صفاء ناصر عبدالهادي ابو خضير,نظم المعلومات المحاسبية,2200508227,787002174
+اسيل حسين لافي السرحان,المحاسبة,2150504020,777502211
+الاء علي المشاني,نظم المعلومات المحاسبية,2200508082,772610432
+هاله سعيد كامل فليفل,تمويل ومصارف،,2100511246,796146980
+ايات محمد رباح كعوش,التمويل و المصارف,2200503045,781135704
+لارا خليل محمود حويله,المحاسبة,2200504148,798039258
+Rania Almashaqbeh,محاسبه,2250504037,770718452
+مرام محمد عيسى اسليم,اقتصاد مال واعمال,2200507025,795920255
+رهف علي محمود قنديل,إدارة الأعمال,2250502021,788125340
+هاشم رجائي تفاحة,تسويق,2200514016,791118004
+شهد سعد عبداللطيف الهندي,نظم المعلومات المحاسبية,2200508124,798065212
+مروه عاطف محمد ابو صفيه,إدارة الأعمال,2200502014,782416133
+دعاء نايف محمد مشاقبه,المحاسبة,2100504098,776285095
+نور محمد لطفي دريدي,إدارة الأعمال,2200502111,782755493
+سكينه منصور حامد العليمات,ادارة اعمال,2250502015,772597443
+عبدالرزاق حابس العون,نظم معلومات محاسبيه,2200508077,790259836
+نور بسام فتح الله العقرباوي,ادارة اعمال,2200502137,786484777
+وائل قبلان عبده حرب,تسويق رقمي,2350514001,792571552
+ديما نضال سنان سنان,تمويل ومصارف,2200503240,788682454
+فداء خالد مصطفى هماش,إدارة الأعمال,2200502055,795763279
+منه الله مجدي عيسى ابو شلنفح,التسويق الرقمي,2200514209,782044147
+عبد الاله ثروت حرب مصطفى,محاسبة وقانون اعمال,2200509027,790620377
+شهد بلال الشطناوي,إدارة الأعمال - التسويق الرقمي,2300514002,788462697
+هناء كامل محمد نصار,إدارة اعمال,2200502185,788760161
+مسك يحيى قاسم العوسج,التسويق الرقمي,2200514046,797195173
+احمد معتصم عبدالرحمن البيك,محاسبة,2200504034,791424395
+رهف احمد عقله الزبن,التمويل والمصارف,2200503002,782415240
+ساره جهاد كمال خليل,اقتصاديات المال والاعمال,2200507015,797781696
+وعد رائد علي الخطيب,إدارة الأعمال,2200502206,785289664
+روعه خليل اكرم غيظان,محاسبة,2200504023,785767077
+سلسبيل عبدالحميد احمد الربعي,التسويق الرقمي,2200514233,781992721
+حسن ناصر حسن جرادت,محاسبه وقانون الأعمال,2100509002,776098147
+خديجة فارس عبدالهادي النجار,المحاسبة وقانون الأعمال,2200509003,791327966
+نور الدين محمود جودت ايوب,نظم المعلومات المالية والمصرفيه,2200511060,786017462
+رند حمد سالم البريحي,التمويل والمصارف,2200503175,798294041
+جيلان علي محمد بصبوص,التسويق الرقمي,2200514115,770790834
+لارا عماد عبد الكريم المومني,تسويق رقمي,2200514105,770430068
+البتول عبدالباسط احمد الصبيحات,نظم المعلومات المحاسبية,2200508090,770458319
+تسنيم سلامه محمود حناوي,محاسبة وقانون اعمال,2200509118,780256844
+حنين عصام داوود الصرفندي,نظم المعلومات المحاسبية,2200508163,788054202
+رهف نائل شحروج,نظم معلومات محاسبيه,2200508223,781604062
+ريناد ابراهيم احمد حمد,محاسبة,2200504115,788643244
+محمد جهاد ابراهيم السعدي,تسويق رقمي,2200514136,787035718
+ايه مروان المصري,محاسبة,2200504189,797296551
+فرح دحام نويديس الشرفات,محاسبه,2200504180,778646037
+ملك اشرف حسين شحاده,المحاسبة,2200504280,779053438
+ارجوان جمال عمر العاصي,إدارة الأعمال,2200502077,782145906
+أسيل نمر احمد عثمان,محاسبه وقانون الاعمال,2200509030,780154458
+سمر باسم محمد حكمت الحوري,محاسبة وقانون الاعمال,2200509014,786114955
+امينة حسين المزايدة,تمويل ومصارف,2100503203,795285807
+ولاء جواد عبدالله,محاسبة وقانون اعمال,2200509047,788713644
+المناهل سعود عايد الشويعر,التمويل والمصارف,2100503248,797895514
+عبير محمد حسن أبوزينة,إدارة الأعمال,2200502082,775571767
+سندس يوسف عبدالله حسن,نظم المعلومات الماليه والمصرفيه,2200511020,797534361
+احمد محمد مصطفى احمد,تسويق رقمي,2200514085,780286715
+منار ابراهيم عبدالله خلاوي,المحاسبة,2200504132,781290799
+رناد زياد محمد الخوالدة,التسويق الرقمي,2200514112,777584709
+لارا رامز صدقي محمد,نظم المعلومات المحاسبية,2200508151,780279988
+ضياء محمد مصطفى السالم,نظم معلومات مالية ومصرفية,2200511186,782183683
+سيف الدين محمد أبراهيم أبو الهيجاء,التمويل والمصارف,2100503034,786919136
+سديل عبد الرحيم محمود اسعد,التمويل والمصارف,2200503212,782969788
+امل موفق خلف هلال,إدارة الأعمال,2200502086,772316581
+رانيا مصطفى يوسف ابوالرب,التسويق الرقمي,2200514173,796708018
+زينه ايمن احمد حماده,تمويل ومصارف,2200503052,792907806
+سبأ فايز سلامه,التسويق الرقمي,2200514116,790275007
+تسنيم رامي عزمي القيسي,نظم معلومات مالية ومصرفية,2200511165,790315826
+فاطمة محمد حسن ابو فرحان,التمويل والمصارف,2200503101,780915960
+يقين علي عشوي العون,التسويق الرقمي,2200514124,772427611
+شهد مصطفى كمال خريشي,نظم المعلومات المحاسبية,2200508197,778646013
+شهد احمد موسى العمري,تسويق رقمي,2300514120,782716955
+ماجده صلاح حسان الهديب,تسويق رقمي,2200514221,790699865
+رؤى سهيل احمد قطيش,تسويق رقمي,2200514087,791943454
+ايه صادق حراحشة,تمويل ومصارف,2200503166,775635623
+محمد حماد محمود الشرفات,نظم معلومات مالية ومصرفية,2200511065,779627067
+رامي زياد علي ابو صلاح,المحاسبة,2200504038,782447356
+بتول خالد محمود النعيمي,المحاسبة وقانون الاعمال,2200509154,781127970
+ضيف الله محمد ضيف الله الزعبي,التسويق الرقمي,2200514232,799517036
+فرحي حسين نايف البريحي,التمويل والمصارف,2100503140,791585180
+ساجده علي خليفه الشرعه,محاسبه,2200504093,779995671
+لميس ابراهيم موسى العسعس,المحاسبة وقانون الأعمال,2200509015,797496029
+ميار أحمد عواد الهواري,تسويق رقمي,2200514117,792053193
+فاطمة ناصر صب لبن,محاسبة وقانون اعمال,2200509104,780035091
+سماح وسام منصور كسبه,نظم المعلومات الماليه والمصرفيه,2200511019,795042625
+احمد هيثم محمد ابو شادوف,محاسبه,2150504064,780026184
+باسل محمد فلاح مخادمه,التسويق الرقمي,2200514090,782584938
+رغد مفلح عيد سرحان,محاسبه وقانون أعمال,2200509081,775459952
+سيف الاسلام سامر المدفعي,المحاسبة وقانون الاعمال,2100509012,793370727
+بيان عماد كحيل,المحاسبة وقانون الاعمال,2200509192,782958468
+ايهاب محمد علي,نظم المعلومات المحاسبية,2200508026,781309160
+نورا أسامة سعدات الخطيب,محاسبة وقانون الأعمال,2200509121,797406235
+مروى اللاحم,محاسبه,2200504082,772710194
+حنين محمد شريم,محاسبه,2200504200,785973868
+رؤى وليد محمد عشا,ادارة اعمال,2200502060,776375664
+شهد جهاد عبد الجعبري,محاسبة,2200504073,788795776
+رؤى احمد عطية ابو زاهر,نظم المعلومات المالية والمصرفية,2200511113,795846438
+اية سائد مفيد القاضي,ادارة الاعمال,2200502107,789616123
+ليث فتحي احمد شواقفه,تمويل ومصارف,2200503107,796914089
+دعاء محمد فضل الماضي,محاسبه,2200504088,779928178
+دانية حبايب,محاسبة,2220050412,78307579
+راما موفق هليل السليم,نظم المعلومات المحاسبية,2200508089,799313377
+جهاد حسام خضر,المحاسبة,2200504136,770495048
+فرح عامر راشد,تمويل ومصارف,2200503024,790484605
+لين محمد سعيد مشّه,إدارة أعمال,2200502150,785557178
+سيرين هاني عبدالله عماره,إدارة أعمال,2200502052,795984810
+عبد الله محمد عطا موسى,المحاسبه وقانون الاعمال,2200509043,781759757
+لين امجد ابوريا,محاسبة وقانون الاعمال,2200509051,798365357
+شهد انور جروان,التمويل والمصارف,2200503010,798878435
+روان وديع حسين عبدالله,المحاسبة,2200504228,788117852
+رؤى محمود عبدالعال قعقور,محاسبة,2200504152,785295948
+زينه سهيل دحبور,المحاسبة,2200504032,786051581
+ميس احمد خليف بني ياسين,المحاسبة وقانون الاعمال,2100509184,785126644
+مرح مراد عساف,نظم معلومات ماليه,2200511145,781710633
+أية علي عبد الله ابو صعيليك,التمويل والمصارف,2200503080,778297171
+عمر يحيى يوسف جرار,المحاسبة,2350504015,799219243
+طارق رامي طلال العش,محاسبة,2200504026,790812496
+قصي وائل نبيل الكلباني,التمويل و المصارف,2200503152,791577868
+ليان ابو منشار,تمويل و مصارف,2200503021,798809154
+محمد مصباح سليمان دراغمه,نظم معلومات مالية ومصرفية,2200511137,788674347
+ايات حمّاد,تسويق رقمي,2250514001,798967212
+احمد محمد يوسف رشيد,محاسبه وقانون الاعمال,2200509025,791027941
+ليث بلال مصطفى عيسى,محاسبه وقانون الاعمال,2200509088,786075655
+جنة علي احمد الجرايدة,تخصص المحاسبة,2100504102,797464530
+رهف احمد فايد حمدان,التمويل والمصارف,2200503184,798059560
+احمد اسماعيل مطر,اقتصاد مال و اعمال,2200507004,782033950
+عمر مامون ناجي عوده,محاسبة,2200504013,796661845
+حسين عمر حسين فارس,تسويق رقمي,2300514076,788834852
+شهد جهاد وحيد النعيمي,محاسبه وقانون اعمال,2200509077,791459717
+نيرمين حكمت صالح,ادارة الاعمال,2200502205,780729589
+ملاك امجد طه فراج,محاسبة,2200504233,788342960
+سجى إبراهيم رسمي,تمويل ومصارف,2200503199,796555897
+كنده محمد أصلان,التسويق الرقمي,2200514027,791870470
+لجين شادي حسن دوله,نظم المعلومات المالية و المصرفية,2200511198,782530054
+نورا ابراهيم اثفيل الجبور,Digital Marketing,2200514215,796626923
+لمى مراد بني احمد,تسويق رقمي,2200514100,795262578
+احمد صبحي الطباخي,المحاسبة,2200504010,798053963
+غفران ابراهيم صبيح الشرفات,التسويق الرقمي,2200514238,776642147
+بتول باسم علي البداوي,إدارة الأعمال,2200502016,797220571
+ايمان إبراهيم محمد البدوي,محاسبة,2200504216,783233925
+آلاء محمد خليل كناني,التمويل والمصارف,2200503046,772248121
+روان رزق سالم عليمات,تسويق رقمي,2200514203,778913750
+دنيا نضال ابو صبح,المحاسبه,2200504191,770342364
+طارق محسن محمد المحيميد,تسويق رقمي,2200514068,787033128
+اسراء إبراهيم محمد شريتح,التسويق الرقمي,2200514243,776842840
+حلا نضال محمد سند,محاسبة وقانون الاعمال,2200509018,796850453
+شهد عوض مناع خضر,نظم معلومات ماليه ومصرفيه,2100511283,787091848
+رزان كمال قاسم ابو غانم,تمويل و مصارف,2300503111,786123373
+وحيده علي اسعود الخوالده,محاسبةوقانون الأعمال,2200509074,778990431
+إسراء عبدالله مشوح الشرفات,التسويق الرقمي,2200514121,786697711
+نورس عبدالرحمن عليمات,تسويق رقمي,2200514244,778990457
+مرعي الخزاعله,التسويق الرقمي,2200514237,779725539
+ليث احمد محمد مشاقبه,محاسبه وقانون أعمال,2200509004,777435838
+نغم سهيل حمام,نظم معلومات محاسبيه,2200508234,788604091
+خالد محمد ظاهر الحوامدة,محاسبة وقانون أعمال,2200509006,795119250
+سارة أمير الأعرج,التمويل و المصارف,2200503141,797569395
+يوسف غسان ابو عمر,نظم معلومات مالية ومصرفية,2200511130,791459351
+ميرا اياد ابو طوق,نظم المعلومات المحاسبية,2200508043,0782182443
+نور محمد علي الزبن,ادارة اعمال,2300502110,797340434
+ريماس النجار,تسويق رقمي,2200514029,780879438
+بشار شاكر محمود اشنينة,التمويل والمصارف,2150503009,797222663
+بلقيس اشرف ضامن ابو صرة,محاسبة و قانون الاعمال,2200509122,788212608
+عبدالرحمن سعود عبدالله ابو صلاح,نظم المعلومات المحاسبية,2200508055,797768929
+هاني عامر محمد حداد,التسويق الرقمي,2200514070,791974768
+تالا وليد عادل,محاسبه,2200504187,797894843
+ابتسام عبدالله فالح السرحان,اقتصاد مال وأعمال,2100507049,779357839
+محمد علاء الطويل,المحاسبة,2150504070,0799535689
+معتز جابر محمد الهزايمة,تسويق رقمي,2200514067,781821310
+مجدولين علي سليم ارشيد,المحاسبة,2200504209,775476169
+طيف ياسر صقر المخاريز,التسويق الرقمي,2200514123,775638658
+زينه وائل ابو لبن,تمويل ومصارف,2200503140,795168521
+أية محمد عواد الحموري,إدارة الأعمال,2200502076,782915963
+أمين يحيى زكريا الدويك,التسويق الرقمي,2200514108,798388925
+أمواج قاسم محمد المزاودة,نظم معلومات محاسبيه,2100508096,798340391
+ميرا وليد توفيق باكير,المُحاسبة وقانون الأعمال,2200509191,790131055
+ياسمين مازن وليد الخليلي,محاسبه,2200504074,789495595
+حازم محمد حسين مسعد,نظم معلومات محاسبية,2150508005,780686890
+عمر عصام فوزي شريدة,محاسبة,2100504262,798688947
+رندة منير طوابين,تمويل ومصارف,2200503044,796017154
+شهد رائد مسلم أبو سيف,التسويق الرقمي,2200514052,791592649
+رنين ماجد يونس بدر,تمويل ومصارف,2200503023,789902354
+زين مصطفى محمد امين النعنيش,تمويل ومصارف,2200503011,781671034
+عصام مدالله عواد المشاقبة,نظم معلومات ماليه ومصرفية,2100511079,776259866
+خالد عماد رجا الصدقه,نظم معلومات مالية ومصرفية,2100511319,785873661
+شذى عصام شاهين,محاسبه وقانون أعمال,2200509135,780751116
+عبيدة لؤي الفارس,نظم معلومات محاسبيه,2200508037,790892138
+سليمان خالد رجا الهدار,نظم المعلومات المحاسبيه,2000508041,781820742
+نغم رمزي شويكي,محاسبة وقانون اعمال,2200509055,780651114
+رغد علي المزاودة,محاسبة,2200504091,776242816
+دارين نائل الجيلاني,التمويل والمصارف,2200503198,776533339
+محمد جعفر القضاة,تسويق رقمي,2300514003,798590906
+ديما عامر المفالحه,محاسبة وقانون الاعمال,2200509095,789009112
+سيرين ايوب جبر,محاسبة وقانون الأعمال,2200509156,791298188
+لانا سائد قطعيين,محاسبة,2200504203,789991384
+عبيدة تيسير ابراهيم الشملتي,ادارة الاعمال,2100502017,0788608901
+رهف امجد الجبارين,نظم معلومات محاسبية,2200508088,0772559383
+نغم محمد العموش,نضم معلومات محاسبية,2200508154,0789947269
+أريام فراس نصر الزبيد,نظم معلومات ماليه,2200511181,0777854572
+أحمد كمال الخزعلي,التسويق الرقمي,2200514093,0792931516
+الطاف سامي ابو دلبوح,التسويق الرقمي,2200514113,0772823087
+بندري عطاالله كريم العنزي,التمويل ومصارف,2000503090,0775742722
+بهاء الدين فهمي أحمد أبوجابر,نظم معلومات مالية ومصرفية,2200511104,0786563339
+تسنيم فراس الخطيب,نظم المعلومات المالية والمصرفية,2200511110,0780719384
+حمزة غازي خالد الشبيلات,المحاسبة,2200504011,0776996981
+دانا إياد حسن عبداللطيف,المُحاسبه,2200504214,0787129105
+ديما خالد أبو زهره,اداره اعمال,2200502067,0798253204
+رغد محمد ابراهيم الشني,نظم معلومات المحاسبيه,2200508140,0780142098
+رغد هاني ثلجي العظامات,التمويل والمصارف,2200503245,0770197431
+رنيم منصور عقيل الشرفات,المحاسبة,2200504087,0779469107
+روعه اللصاصمة,تمويل ومصارف,2200503093,0775876462
+سجى متروك عواد العدواني,نظم المعلومات المالية والمصرفية,2200511143,0779713421
+سرينا مراد ابو ليل,إدارة الاعمال,2200502145,0785283922
+سلطان حاتم سلطان,التسويق الرقمي,2300514005,0770127169
+سيدرا كمال سعدي ابو هندي,نظم المعلومات المحاسبية,2200508212,0780910627
+ضياء محمد ابراهيم عليان,تسويق رقمي,2200514034,0795521640
+عبد الرحم منذر يعقوب,تسويق رقمي,2200514073,0789188363
+عبدالله احمد الدهيدي,نظم معلومات مالية ومصرفية,2100511320,0781876998
+عدنان قاسم الخوالده,اقتصاد مال واعمال,1950507009,0772448436
+عز الدين وائل شحادة,نظم معلومات مالية ومصرفية,2100511109,0776278271
+عمر احمد حافظ النهيا,نظم معلومات ماليه ومصرفيه,2200511106,079026799
+عيسى معين عيسى النتشه,إدارة الاعمال,2200502080,0792952555
+فرح سامر جميل محسن,نظم المعلومات المحاسبية,2200508117,0780035029
+فرح محمد باسم اللحام,ادارة الاعمال,2200502132,0788274325
+ليمار جهاد ابو طوق,نظم معلومات محاسبيه,2200508039,0796694382
+مشاعل محمد احمادي الشمري,التسويق الرقمي,2200514220,0778185970
+ميرا يوسف أبو حميدة,تمويل و مصارف,2200503053,0799395261
+نور حمد ناصر المزاودة,تمويل ومصارف,2200503251,0775540571
+هبه عطالله عيد العليق,إدراة اعمال,2200502056,0780767826
+هبه عوده محمد درويش,إدارة الأعمال,2200502199,0799470802
+سالم محمد سالم المصطفى,المحاسبة,2300504003,0772433952`;
+
         let db = [];
         const MY_PHONE = "962772536229";
-        
-        // تم تغيير الرابط هنا ليستخدم gviz/tq وهو الرابط السحري الذي لا يحظره المتصفح
-        const googleSheetCSVUrl = "https://docs.google.com/spreadsheets/d/1YyxoA4BcsRsYidcnGKIECKejmtiCVZAlIw3VcOBIl6k/gviz/tq?tqx=out:csv";
 
-        Papa.parse(googleSheetCSVUrl, {
-            download: true,
-            header: true,
-            complete: function(res) { 
-                db = res.data; 
-                let statusEl = document.getElementById('status-msg');
-                statusEl.innerText = "متصل بنجاح بالبيانات (الأنظمة جاهزة) ✅";
-                statusEl.className = "status-ok";
-                console.log("تم تحميل البيانات: ", db);
-            },
-            error: function(err) {
-                let statusEl = document.getElementById('status-msg');
-                statusEl.innerText = "⚠️ تأكد من أن جوجل شيت متاح (أي شخص لديه الرابط).";
-                statusEl.className = "status-err";
-                console.error("مشكلة في جلب البيانات:", err);
+        Papa.parse(myDataString, { header: true, complete: function(res) { db = res.data; }});
+
+        // 3. نظام الأصوات (Web Audio API)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            
+            if (type === 'click') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'success') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
             }
-        });
+        }
 
-        // 3. دالة البحث
+        // 4. دالة استخراج الصورة الرمزية (Initials Avatar)
+        function getInitials(name) {
+            if(!name) return "?";
+            let parts = name.trim().split(' ');
+            if(parts.length >= 2) return parts[0][0] + '.' + parts[parts.length-1][0];
+            return parts[0][0];
+        }
+
+        // 5. دالة توليد بطاقة المشاركة كصورة قابلة للتحميل (Canvas)
+        function generateBadgeDataURL(name, major) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1080; canvas.height = 1920; // حجم ستوري انستغرام
+            const ctx = canvas.getContext('2d');
+
+            // خلفية متدرجة
+            const grad = ctx.createLinearGradient(0,0,0,1920);
+            grad.addColorStop(0, '#0f172a'); grad.addColorStop(1, '#020617');
+            ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
+
+            // أشكال ذهبية
+            ctx.fillStyle = 'rgba(212, 175, 55, 0.1)';
+            ctx.beginPath(); ctx.arc(0, 0, 600, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(1080, 1920, 800, 0, Math.PI*2); ctx.fill();
+
+            // إطار ذهبي
+            ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 15; ctx.strokeRect(50, 50, 980, 1820);
+
+            // النصوص
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            
+            ctx.fillStyle = '#d4af37'; ctx.font = 'bold 90px Arial, sans-serif';
+            ctx.fillText('قمة الأعمال 2026', 540, 450);
+
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 70px Arial, sans-serif';
+            ctx.fillText('أنا فخور بمشاركتي!', 540, 650);
+
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 110px Arial, sans-serif';
+            ctx.fillText(name, 540, 1050);
+
+            ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 60px Arial, sans-serif';
+            ctx.fillText(major, 540, 1200);
+
+            ctx.fillStyle = '#d4af37'; ctx.font = 'bold 50px Arial, sans-serif';
+            ctx.fillText('🚀 أراك هناك!', 540, 1750);
+
+            return canvas.toDataURL('image/png');
+        }
+
+        // إطلاق القصاصات الملونة
+        function triggerConfetti() {
+            var duration = 3 * 1000; var end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#d4af37', '#1e293b', '#38bdf8'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d4af37', '#1e293b', '#38bdf8'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+
+        // دالة البحث الرئيسية
         function runSearch() {
+            playSound('click'); // تشغيل صوت الضغطة
             const idVal = document.getElementById('idInput').value.trim();
             const phoneVal = document.getElementById('phoneInput').value.trim();
             const resBox = document.getElementById('result-box');
+            const alertBox = document.getElementById('custom-alert');
+            const btn = document.getElementById('searchBtn');
 
-            if (db.length === 0) {
-                alert("قاعدة البيانات فارغة أو لم يتم تحميلها بشكل صحيح. تأكد من إعدادات مشاركة رابط جوجل.");
-                return;
-            }
+            resBox.style.display = "none"; alertBox.style.display = "none";
 
-            if (!idVal && !phoneVal) {
-                alert("يرجى إدخال الرقم الجامعي أو رقم الهاتف للبحث.");
-                return;
-            }
+            if (!idVal && !phoneVal) { alertBox.style.display = "block"; return; }
 
-            let cleanPhoneInput = phoneVal.replace(/^0+/, '');
+            const originalBtnText = `<i class="fa-solid fa-magnifying-glass"></i> استعلام الآن <div class="progress-bar" id="btnProgress"></div>`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التدقيق... <div class="progress-bar" id="btnProgress"></div>`;
+            btn.disabled = true;
+            
+            setTimeout(() => { document.getElementById('btnProgress').style.width = '100%'; }, 50);
 
-            let match = db.find(s => {
-                let sID = s["الرقم الجامعي"] ? String(s["الرقم الجامعي"]).trim() : "";
-                let sPhone = s["الهاتف"] ? String(s["الهاتف"]).trim() : (s["رقم الهاتف"] ? String(s["رقم الهاتف"]).trim() : "");
-                let cleanFilePhone = sPhone.replace(/^0+/, '');
+            setTimeout(() => {
+                let cleanPhoneInput = phoneVal.replace(/^0+/, '');
+                let match = db.find(s => {
+                    let sID = s["الرقم الجامعي"] ? String(s["الرقم الجامعي"]).trim() : "";
+                    let sPhone = s["الهاتف"] ? String(s["الهاتف"]).trim() : "";
+                    let cleanFilePhone = sPhone.replace(/^0+/, '');
+                    return (idVal !== "" && sID === idVal) || (cleanPhoneInput !== "" && cleanFilePhone === cleanPhoneInput);
+                });
 
-                let isIdMatch = (idVal !== "" && sID === idVal);
-                let isPhoneMatch = (cleanPhoneInput !== "" && cleanFilePhone === cleanPhoneInput);
+                resBox.style.display = "block";
 
-                return isIdMatch || isPhoneMatch;
-            });
+                if (match) {
+                    playSound('success'); // صوت النجاح
+                    triggerConfetti();
+                    resBox.className = "success-box";
+                    
+                    const studentName = match["الاسم"] || "غير محدد";
+                    const initials = getInitials(studentName);
+                    const badgeDataUrl = generateBadgeDataURL(studentName, match["التخصص"] || "تخصص غير محدد");
+                    
+                    // توليد رابط تقويم جوجل
+                    const eventTitle = encodeURIComponent("قمة الأعمال 2026 - حضور الفعالية");
+                    const eventDetails = encodeURIComponent("تهانينا! أنت مسجل رسمياً في قمة الأعمال 2026.");
+                    const eventLocation = encodeURIComponent("عمان، الأردن");
+                    const googleCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=20260515T070000Z/20260515T140000Z&details=${eventDetails}&location=${eventLocation}`;
 
-            resBox.style.display = "block";
+                    resBox.innerHTML = `
+                        <h3 style="margin-top:0; color: #166534;"><i class="fa-solid fa-face-smile-beam"></i> تم تأكيد حضورك بنجاح!</h3>
+                        
+                        <div class="user-profile">
+                            <div class="avatar">${initials}</div>
+                            <div style="font-size: 15px; line-height: 1.8;">
+                                <strong>الاسم:</strong> <span style="color:var(--primary-dark)">${studentName}</span><br>
+                                <strong>التخصص:</strong> <span style="color:var(--primary-dark)">${match["التخصص"] || "غير محدد"}</span>
+                            </div>
+                        </div>
 
-            if (match) {
-                resBox.className = "success-box";
-                resBox.innerHTML = `
-                    <h3 style="margin-top:0; color: #166534;">تم العثور على بياناتك بنجاح ✅</h3>
-                    <div style="font-size: 15px; line-height: 1.8;">
-                        <strong>الاسم:</strong> ${match["الاسم"] || "غير محدد"}<br>
-                        <strong>التخصص:</strong> ${match["التخصص"] || "غير محدد"}<br>
-                        <strong>الرقم الجامعي:</strong> ${match["الرقم الجامعي"] || "غير محدد"}<br>
-                        <span style="display:inline-block; margin-top:10px; padding:5px 10px; background:#dcfce7; border-radius:5px; border:1px solid #22c55e;">
-                            حالة التسجيل: مؤكد في الفعالية 🎉
-                        </span>
-                    </div>
-                    <hr style="border: 0; border-top: 1px solid #bbf7d0; margin: 15px 0;">
-                    <small style="color: #15803d; font-weight: 600;">في حال وجود خطأ في البيانات، تواصل مع معاذ الخوالدة:</small>
-                    <a href="https://wa.me/${MY_PHONE}" class="wa-btn">تواصل عبر واتساب</a>
-                `;
-            } else {
-                let msg = encodeURIComponent("مرحباً معاذ، بياناتي غير مدرجة في نظام قمة الأعمال. \nالاسم: \nالرقم الجامعي: \nالهاتف: \nالتخصص: \n(مرفق صورة الحوالة)");
-                resBox.className = "error-box";
-                resBox.innerHTML = `
-                    <h3 style="margin-top:0; color: #991b1b;">عذراً، البيانات غير مدرجة ⚠️</h3>
-                    <p style="font-size: 14px; font-weight: 600;">لم نتمكن من العثور على اسمك في كشوفات المسجلين.</p>
-                    <hr style="border: 0; border-top: 1px solid #fecaca; margin: 15px 0;">
-                    <small style="color: #991b1b; font-weight: 600;">يرجى التواصل فوراً لتثبيت تسجيلك أو مراجعة الحوالة:</small>
-                    <a href="https://wa.me/${MY_PHONE}?text=${msg}" class="wa-btn" style="background-color: #dc2626;">أرسل بياناتك عبر واتساب الآن</a>
-                `;
-            }
+                        <div class="action-buttons">
+                            <a href="${badgeDataUrl}" download="Badge_Business_Summit_2026.png" class="btn-action btn-download">
+                                <i class="fa-solid fa-image"></i> تحميل صورتي
+                            </a>
+                            <a href="${googleCalLink}" target="_blank" class="btn-action btn-calendar">
+                                <i class="fa-regular fa-calendar-check"></i> احجز في التقويم
+                            </a>
+                        </div>
+                        
+                        <hr style="border: 0; border-top: 1px solid #bbf7d0; margin: 20px 0;">
+                        <a href="https://wa.me/${MY_PHONE}" class="wa-btn" target="_blank">
+                            <i class="fa-brands fa-whatsapp" style="font-size:1.3rem;"></i> تواصل للدعم الفني
+                        </a>
+                    `;
+
+                } else {
+                    playSound('error'); // صوت الخطأ
+                    let msg = encodeURIComponent("مرحباً معاذ، بياناتي غير مدرجة في نظام قمة الأعمال. \nالاسم: \nالرقم الجامعي: \nالهاتف: \nالتخصص: \n(مرفق صورة الحوالة)");
+                    resBox.className = "error-box";
+                    resBox.innerHTML = `
+                        <h3 style="margin-top:0; color: #991b1b;"><i class="fa-solid fa-circle-xmark"></i> عذراً، البيانات غير مدرجة</h3>
+                        <p style="font-size: 15px; font-weight: 600; line-height:1.6;">لم نتمكن من العثور على اسمك في كشوفات المسجلين.</p>
+                        <hr style="border: 0; border-top: 1px solid #fecaca; margin: 20px 0;">
+                        <small style="color: #991b1b; font-weight: 700;">يرجى التواصل فوراً لتثبيت تسجيلك أو مراجعة الحوالة:</small>
+                        <a href="https://wa.me/${MY_PHONE}?text=${msg}" class="wa-btn" style="background-color: #dc2626;" target="_blank">
+                            <i class="fa-brands fa-whatsapp" style="font-size:1.3rem;"></i> أرسل بياناتك للتحقق
+                        </a>
+                    `;
+                }
+
+                btn.innerHTML = originalBtnText; btn.disabled = false;
+            }, 1200); 
         }
     </script>
 </body>
