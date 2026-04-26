@@ -142,6 +142,21 @@
             width: 100%; box-sizing: border-box; transform: translateZ(20px);
         }
 
+        .footer-credit {
+            text-align: center; margin-top: 35px; z-index: 10; position: relative; animation: fadeInUp 1.2s ease-out;
+        }
+        .footer-credit p.dev-name { color: #cbd5e1; font-weight: 600; font-size: 1.1rem; margin: 5px 0; }
+        .footer-credit p.dev-name span { color: var(--gold); font-weight: 800; }
+        .footer-credit p.phone { color: #94a3b8; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px; direction: ltr; display: inline-block; font-weight: 700; }
+        
+        .student-counter {
+            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            padding: 12px 25px; border-radius: 16px; border: 1px solid rgba(212,175,55,0.3); display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .student-counter span.text { color: #e2e8f0; font-weight: 700; font-size: 1.1rem; }
+        .student-counter #totalStudents { color: var(--gold); font-size: 1.4rem; font-weight: 800; margin-right: 10px; }
+
         .ticker-wrap {
             position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
             border-top: 2px solid var(--gold); overflow: hidden; height: 45px; line-height: 45px; z-index: 100;
@@ -208,6 +223,16 @@
         <div id="result-box"></div>
     </div>
 
+    <div class="footer-credit">
+        <p class="dev-name">تطوير برمجي وتصميم: <span>معاذ الخوالده</span></p>
+        <p class="phone"><i class="fa-solid fa-phone" style="margin-right: 5px; color: var(--gold);"></i> 0772536229</p>
+        <br>
+        <div class="student-counter">
+            <span class="text">إجمالي الطلبة المسجلين:</span>
+            <span id="totalStudents">0</span>
+        </div>
+    </div>
+
     <div class="ticker-wrap" dir="rtl">
         <div class="ticker">
             <span class="ticker-item"><i class="fa-solid fa-fire"></i> إقبال كبير على التسجيل! المقاعد محدودة جداً</span>
@@ -240,7 +265,6 @@
             document.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
         }, 1000);
 
-        // تم تحديث القائمة أدناه
         const myDataString = `الاسم,التخصص,الرقم الجامعي,الهاتف
 عائشة سعود محمد العياش,التسويق الرقمي,2200514122,775828571
 سيرينا اسامة سلامة,تسويق رقمي,2200514172,788478336
@@ -487,12 +511,49 @@ Rania Almashaqbeh,محاسبه,2250504037,770718452
 سعد وليد النعيمات,ادارة الاعمال,2200502227,795663128
 عبدالله احمد محمد عريقات,التمويل والمصارف,2200503033,787442785
 ضحى سيف يونس الراديدة,نظم المعلومات الماليه المصرفيه,2200511190,781929632
-عبير عبد الكريم علي مصلح,نظم المعلومات ماليه ومصرفيه,2200511112,962785292465`;
+عبير عبد الكريم علي مصلح,نظم المعلومات ماليه ومصرفيه,2200511112,962785292465
+رهف اياد جميل سعيد,المحاسبه وقانون الأعمال,2200509196,790026908
+علي حسن المغربي,المحاسبة,2200504012,786612032
+أيمن حمدالله يحيى العقرباوي,التسويق الرقمي,2200514041,798359101
+رناد صالح الخزاعله,التسويق الرقمي,2200514114,775618618
+رنيم صالح ابو شاويش,ادارة اعمال,2200502240,788276634
+ميرا وائل,تمويل ومصارف,2200503027,792546381
+فاطمة الزهراء رائد يوسف,محاسبة وقانون الأعمال,2100509041,791875812
+حلا ابوعبطه,التسويق الرقمي,2200514076,781494384
+حنين زيد سليم الخزاعلة,نظم المعلومات المالية والمصرفية,2200511099,772421539
+دانية عبد المعطي حبايب,محاسبة,2200504122,788307579
+قمر علي ضيف الله طحيمر,التسويق الرقمي,2200514099,772585413
+تالا فراس المشاقبة,محاسبه وقانون الأعمال,2200509120,780570122
+لجين داود الصيفي,إدارة الأعمال,2200502063,0792710122
+عبدالرحيم احمد هلال النعيمي,اداره الأعمال,2100502229,777227687
+هديل عبدالله عطالله علييان,محاسبة,2150504063,776490221
+اسامه زيد محمد علاونه,اقتصاد مال وأعمال,2100507165,781571633
+هاشم حسين محمد عوده,ادارة اعمال,2200502239,795981615`;
 
         let db = [];
         const MY_PHONE = "962772536229";
 
-        Papa.parse(myDataString, { header: true, complete: function(res) { db = res.data; }});
+        Papa.parse(myDataString, { 
+            header: true, 
+            complete: function(res) { 
+                let rawData = res.data;
+                let uniqueIds = new Set();
+                db = [];
+                
+                rawData.forEach(row => {
+                    let stId = row["الرقم الجامعي"] ? String(row["الرقم الجامعي"]).trim() : null;
+                    if (stId && !uniqueIds.has(stId)) {
+                        uniqueIds.add(stId);
+                        db.push(row);
+                    }
+                });
+
+                const counterElement = document.getElementById('totalStudents');
+                if (counterElement) {
+                    counterElement.innerText = db.length;
+                }
+            }
+        });
 
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         let audioCtx;
