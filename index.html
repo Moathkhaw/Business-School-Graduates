@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بوابة الاستعلام | قمة الأعمال 2026</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>بوابة التذاكر | قمة الأعمال 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- المكتبات اللازمة للتوليد الذاتي -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+
     <style>
         :root {
             --primary-dark: #0f172a; 
             --primary-light: #1e293b;
             --gold: #d4af37; 
-            --gold-hover: #b5952f;
             --text-light: #f8fafc;
-            --text-dark: #334155;
             --bg-color: #020617;
         }
 
@@ -25,701 +28,508 @@
             font-family: 'Cairo', sans-serif;
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at center, var(--primary-light) 0%, var(--primary-dark) 60%, #000000 100%);
-            color: var(--text-light);
-            margin: 0;
-            padding: 20px 20px 80px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-            box-sizing: border-box;
+            margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        .bg-shape { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; transition: transform 0.2s ease-out; }
-        .shape-1 { width: 400px; height: 400px; background: rgba(212, 175, 55, 0.15); top: -10%; left: -5%; }
-        .shape-2 { width: 500px; height: 500px; background: rgba(56, 189, 248, 0.1); bottom: -10%; right: -5%; }
-
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-        .header-section { text-align: center; margin-bottom: 30px; margin-top: 20px; z-index: 10; animation: fadeInUp 0.8s ease-out; }
-        .header-section h1 { color: var(--gold); font-size: 2.8rem; margin-bottom: 5px; text-shadow: 0 4px 20px rgba(212, 175, 55, 0.5); letter-spacing: 1px; }
-        .header-section p { color: #cbd5e1; font-size: 1.2rem; margin-top: 0; font-weight: 600; }
-
-        .countdown-container { display: flex; justify-content: center; gap: 15px; margin-top: 25px; direction: ltr;}
-        .time-box {
-            background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 16px; padding: 15px; width: 80px;
-            text-align: center; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); position: relative; overflow: hidden;
+        /* --- شاشة الانترو (5 ثواني) --- */
+        #intro-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 1s ease, visibility 1s;
         }
-        .time-box::before {
-            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
-            transform: skewX(-20deg); animation: shine 3s infinite;
-        }
-        @keyframes shine { 100% { left: 200%; } }
+        .intro-box { text-align: center; color: white; animation: fadeInUp 1s ease-out; }
+        .intro-logo { font-size: 5rem; color: var(--gold); margin-bottom: 20px; }
+        .intro-title { font-size: 2.5rem; font-weight: 900; margin: 10px 0; }
+        .dev-credit { font-size: 1.1rem; color: #94a3b8; margin-top: 20px; border-top: 1px solid #1e293b; padding-top: 15px; }
+        .dev-credit span { color: var(--gold); font-weight: bold; }
+
+        /* --- المحتوى الرئيسي --- */
+        #main-content { display: none; width: 100%; max-width: 600px; padding: 20px; box-sizing: border-box; opacity: 0; transition: opacity 1s ease; }
         
-        .time-box span { display: block; font-size: 2.2rem; font-weight: 800; color: var(--gold); }
-        .time-box small { font-size: 0.9rem; color: #e2e8f0; font-weight: 700; text-transform: uppercase;}
-
         .card {
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            color: var(--text-dark); padding: 40px; border-radius: 24px; box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6);
-            max-width: 480px; width: 100%; position: relative; z-index: 10; box-sizing: border-box;
-            animation: fadeInUp 1s ease-out 0.2s backwards; border: 1px solid rgba(255, 255, 255, 0.2); transform-style: preserve-3d;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(15px);
+            padding: 40px; border-radius: 28px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .card h2 { text-align: center; color: var(--primary-dark); margin-top: 0; margin-bottom: 20px; font-weight: 800; font-size: 1.8rem; transform: translateZ(30px); }
+        h2 { text-align: center; color: var(--primary-dark); font-weight: 800; margin-bottom: 25px; }
 
-        #custom-alert {
-            display: none; background-color: #fee2e2; color: #991b1b; padding: 12px; border-radius: 10px; text-align: center;
-            font-weight: 700; font-size: 14px; margin-bottom: 20px; border: 1px solid #fecaca; animation: fadeInUp 0.3s ease-out;
-        }
-
-        .form-group { margin-bottom: 20px; position: relative; transform: translateZ(20px); }
-        label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary-dark); font-size: 0.95rem;}
-        
-        .input-wrapper { position: relative; }
-        .input-wrapper i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 1.2rem; transition: color 0.3s; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--primary-dark); }
         input {
-            width: 100%; padding: 15px 45px 15px 15px; border: 2px solid #e2e8f0; border-radius: 12px;
-            font-family: 'Cairo', sans-serif; font-size: 16px; box-sizing: border-box; background-color: #f8fafc;
-            transition: all 0.3s; color: var(--primary-dark); font-weight: 600;
+            width: 100%; padding: 16px; border: 2px solid #e2e8f0; border-radius: 14px;
+            font-size: 18px; font-family: 'Cairo'; text-align: center; transition: 0.3s; font-weight: bold;
         }
-        input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15); background-color: #fff; }
-        input:focus + i { color: var(--gold); }
+        input:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1); }
 
-        .or-divider { text-align: center; margin: 25px 0; color: #94a3b8; font-weight: 700; position: relative; font-size: 0.9rem; transform: translateZ(20px);}
-        .or-divider::before, .or-divider::after { content: ""; position: absolute; top: 50%; width: 38%; height: 2px; background-color: #e2e8f0; }
-        .or-divider::before { right: 0; } .or-divider::after { left: 0; }
-
-        .btn-container { position: relative; transform: translateZ(30px); }
-        button {
+        button.search-btn {
             width: 100%; padding: 18px; background: linear-gradient(135deg, var(--gold) 0%, #a38222 100%);
-            color: #fff; border: none; border-radius: 14px; font-size: 18px; font-weight: 800; cursor: pointer;
-            transition: all 0.3s ease; box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.5);
-            display: flex; justify-content: center; align-items: center; gap: 10px; position: relative; overflow: hidden;
+            color: white; border: none; border-radius: 14px; font-size: 18px; font-weight: 800; cursor: pointer;
+            box-shadow: 0 10px 20px -5px rgba(212, 175, 55, 0.4); transition: 0.3s;
         }
-        button:hover { transform: translateY(-3px); box-shadow: 0 15px 25px -5px rgba(212, 175, 55, 0.6); }
-        button:active { transform: translateY(0); }
-        button:disabled { opacity: 0.9; cursor: not-allowed; transform: none; }
+        button.search-btn:hover { transform: translateY(-3px); }
 
-        .progress-bar { position: absolute; bottom: 0; left: 0; height: 4px; background-color: #fff; width: 0%; transition: width 1.2s ease-in-out; opacity: 0.8; }
-
-        #result-box { margin-top: 25px; padding: 25px; border-radius: 16px; display: none; animation: fadeInUp 0.5s ease-out; transform: translateZ(20px); }
-        .success-box { background-color: #f0fdf4; color: #166534; border: 2px solid #bbf7d0; box-shadow: 0 10px 15px -3px rgba(34, 197, 94, 0.1); }
-        .error-box { background-color: #fef2f2; color: #991b1b; border: 2px solid #fecaca; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.1); }
+        /* --- تصميم التذكرة المولدة --- */
+        #result-container { margin-top: 30px; display: none; }
         
-        .user-profile { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
-        .avatar {
-            width: 65px; height: 65px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), #fef08a);
-            color: var(--primary-dark); display: flex; justify-content: center; align-items: center;
-            font-size: 1.8rem; font-weight: 800; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(212,175,55,0.4);
+        #ticket-render-area {
+            background: white; padding: 20px; border-radius: 12px; border: 1px solid #ddd;
+            color: black; direction: ltr; margin-bottom: 20px;
         }
 
-        .action-buttons { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
-        .btn-action {
-            flex: 1; min-width: 140px; padding: 12px; border-radius: 10px; font-weight: 800; font-size: 14px;
-            text-align: center; text-decoration: none; display: flex; justify-content: center; align-items: center; gap: 8px;
-            transition: all 0.3s; color: #fff; box-sizing: border-box;
+        .ticket-stub {
+            border: 1px solid #000; padding: 15px; margin-bottom: 15px; position: relative;
+            background: #fff; display: flex; flex-direction: column;
         }
-        .btn-download { background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 10px rgba(99,102,241,0.3); }
-        .btn-download:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); transform: translateY(-2px); }
-        .btn-calendar { background: linear-gradient(135deg, #0ea5e9, #0284c7); box-shadow: 0 4px 10px rgba(14,165,233,0.3); }
-        .btn-calendar:hover { background: linear-gradient(135deg, #0284c7, #0369a1); transform: translateY(-2px); }
-        
-        .wa-btn {
-            display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 15px; padding: 15px;
-            background-color: #25D366; color: white; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px;
-            transition: all 0.3s; box-shadow: 0 4px 6px -1px rgba(37, 211, 102, 0.3); width: 100%; box-sizing: border-box;
-        }
-        .wa-btn:hover { background-color: #1ea952; transform: translateY(-2px); box-shadow: 0 6px 8px -1px rgba(37, 211, 102, 0.4); }
+        .stub-header { font-size: 12px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
+        .stub-body { display: flex; justify-content: space-between; align-items: flex-start; }
+        .stub-info { flex: 1; font-size: 13px; }
+        .stub-qr { width: 90px; height: 90px; }
+        .stub-barcode { margin-top: 15px; text-align: center; }
+        .stub-barcode img { height: 50px; width: 100%; }
+        .stub-footer { font-size: 10px; color: #666; margin-top: 10px; border-top: 1px dotted #ccc; padding-top: 5px; }
 
-        #status-msg { 
-            text-align: center; font-size: 15px; font-weight: 800; margin-bottom: 25px; color: #059669; background: #d1fae5;
-            padding: 10px; border-radius: 8px; display: inline-flex; justify-content: center; align-items: center; gap: 8px;
-            width: 100%; box-sizing: border-box; transform: translateZ(20px);
+        .shelf-display {
+            background: var(--primary-dark); color: white; padding: 20px; border-radius: 16px;
+            text-align: center; margin-top: 20px; border-right: 5px solid var(--gold);
         }
+        .shelf-display span { font-size: 0.9rem; color: #cbd5e1; }
+        .shelf-display strong { display: block; font-size: 2.5rem; color: var(--gold); }
 
-        .footer-credit {
-            text-align: center; margin-top: 35px; z-index: 10; position: relative; animation: fadeInUp 1.2s ease-out;
+        .download-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .btn-dl {
+            padding: 15px; border-radius: 12px; border: none; color: white; font-weight: 800;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px;
         }
-        .footer-credit p.dev-name { color: #cbd5e1; font-weight: 600; font-size: 1.1rem; margin: 5px 0; }
-        .footer-credit p.dev-name span { color: var(--gold); font-weight: 800; }
-        .footer-credit p.phone { color: #94a3b8; font-size: 1.1rem; margin-top: 0; margin-bottom: 20px; direction: ltr; display: inline-block; font-weight: 700; }
-        
-        .student-counter {
-            background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            padding: 12px 25px; border-radius: 16px; border: 1px solid rgba(212,175,55,0.3); display: inline-block;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .student-counter span.text { color: #e2e8f0; font-weight: 700; font-size: 1.1rem; }
-        .student-counter #totalStudents { color: var(--gold); font-size: 1.4rem; font-weight: 800; margin-right: 10px; }
+        .btn-png { background: #3b82f6; }
+        .btn-pdf { background: #ef4444; }
 
-        .ticker-wrap {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
-            border-top: 2px solid var(--gold); overflow: hidden; height: 45px; line-height: 45px; z-index: 100;
-        }
-        .ticker {
-            display: inline-block; white-space: nowrap; font-weight: 700; color: #e2e8f0; font-size: 15px;
-            animation: ticker 30s linear infinite; padding-left: 100%;
-        }
-        .ticker-item { margin-right: 40px; color: #fff; }
-        .ticker-item i { color: var(--gold); margin-left: 8px; }
-        @keyframes ticker { 0% { transform: translate3d(100%, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="bg-shape shape-1" id="shape1"></div>
-    <div class="bg-shape shape-2" id="shape2"></div>
-
-    <div class="header-section">
-        <h1>قمة الأعمال 2026</h1>
-        <p>بوابة الاستعلام وتأكيد الحضور للخريجين</p>
-        
-        <div class="countdown-container">
-            <div class="time-box"><span id="days">00</span><small>يوم</small></div>
-            <div class="time-box"><span id="hours">00</span><small>ساعة</small></div>
-            <div class="time-box"><span id="minutes">00</span><small>دقيقة</small></div>
-            <div class="time-box"><span id="seconds">00</span><small>ثانية</small></div>
+    <!-- شاشة الانترو -->
+    <div id="intro-overlay">
+        <div class="intro-box">
+            <div class="intro-logo"><i class="fa-solid fa-graduation-cap"></i></div>
+            <div class="intro-title">قمة الأعمال 2026</div>
+            <p>نظام التذاكر الرقمية الموحد</p>
+            <div class="dev-credit">برمجة وتطوير: <span>معاذ الخوالدة</span></div>
         </div>
     </div>
 
-    <div class="card" data-tilt data-tilt-max="5" data-tilt-speed="400" data-tilt-glare="true" data-tilt-max-glare="0.2">
-        <h2><i class="fa-solid fa-id-card-clip" style="color: var(--gold); margin-left: 8px;"></i>تحقق من بياناتك</h2>
-        
-        <div id="status-msg"><i class="fa-solid fa-circle-check"></i> الأنظمة جاهزة للبحث</div>
-
-        <div id="custom-alert"><i class="fa-solid fa-triangle-exclamation"></i> يرجى إدخال الرقم الجامعي أو رقم الهاتف للبحث.</div>
-
-        <div class="form-group">
-            <label>الرقم الجامعي</label>
-            <div class="input-wrapper">
-                <input type="number" id="idInput" placeholder="أدخل رقمك الجامعي هنا">
-                <i class="fa-solid fa-hashtag"></i>
+    <!-- المحتوى الرئيسي -->
+    <div id="main-content">
+        <div class="card">
+            <h2><i class="fa-solid fa-shield-halved" style="color: var(--gold); margin-left: 10px;"></i>بوابة الخريجين الآمنة</h2>
+            
+            <div class="input-group">
+                <label>أدخل الرقم الجامعي للاستعلام</label>
+                <input type="number" id="stuId" placeholder="مثلاً: 2200514122">
             </div>
-        </div>
 
-        <div class="or-divider">أو</div>
-
-        <div class="form-group">
-            <label>رقم الهاتف</label>
-            <div class="input-wrapper">
-                <input type="number" id="phoneInput" placeholder="07XXXXXXXX">
-                <i class="fa-solid fa-phone"></i>
-            </div>
-        </div>
-
-        <div class="btn-container">
-            <button id="searchBtn" onclick="runSearch()">
-                <i class="fa-solid fa-magnifying-glass"></i> استعلام الآن
-                <div class="progress-bar" id="btnProgress"></div>
+            <button class="search-btn" onclick="handleSearch()">
+                <i class="fa-solid fa-magnifying-glass"></i> استخراج تذاكري الآن
             </button>
-        </div>
 
-        <div id="result-box"></div>
-    </div>
+            <div id="result-container">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h4 id="displayName" style="margin:0; color: var(--primary-dark);"></h4>
+                    <small id="displayMajor" style="color: #64748b; font-weight: bold;"></small>
+                </div>
 
-    <div class="footer-credit">
-        <p class="dev-name">تطوير برمجي وتصميم: <span>معاذ الخوالده</span></p>
-        <p class="phone"><i class="fa-solid fa-phone" style="margin-right: 5px; color: var(--gold);"></i> 0772536229</p>
-        <br>
-        <div class="student-counter">
-            <span class="text">إجمالي الطلبة المسجلين:</span>
-            <span id="totalStudents">0</span>
-        </div>
-    </div>
+                <!-- منطقة رسم التذاكر التي سيتم تحويلها لملف -->
+                <div id="ticket-render-area">
+                    <h4 style="text-align: center; margin-top: 0; color: #000;">Companion Tickets - Business Summit</h4>
+                    <div id="tickets-list"></div>
+                </div>
 
-    <div class="ticker-wrap" dir="rtl">
-        <div class="ticker">
-            <span class="ticker-item"><i class="fa-solid fa-fire"></i> إقبال كبير على التسجيل! المقاعد محدودة جداً</span>
-            <span class="ticker-item"><i class="fa-solid fa-star"></i> سيرينا من تخصص التسويق أكدت حضورها للتو!</span>
-            <span class="ticker-item"><i class="fa-solid fa-bolt"></i> مفاجآت كبرى وضيوف شرف بانتظاركم في القمة</span>
-            <span class="ticker-item"><i class="fa-solid fa-check-double"></i> عبدالرحمن من التسويق الرقمي حجز مقعده الآن</span>
-            <span class="ticker-item"><i class="fa-solid fa-clock"></i> لا تفوت الفرصة، تأكد من بياناتك قبل إغلاق الأنظمة</span>
+                <div class="download-btns">
+                    <button class="btn-dl btn-png" onclick="downloadImage()">
+                        <i class="fa-solid fa-image"></i> حفظ كصورة
+                    </button>
+                    <button class="btn-dl btn-pdf" onclick="downloadPDF()">
+                        <i class="fa-solid fa-file-pdf"></i> حفظ كـ PDF
+                    </button>
+                </div>
+
+                <div class="shelf-display">
+                    <span>رقم الرف لاستلام الدفتر</span>
+                    <strong id="displayShelf"></strong>
+                </div>
+
+                <a id="waLink" href="#" target="_blank" style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 20px; color: #25D366; text-decoration: none; font-weight: 800;">
+                    <i class="fa-brands fa-whatsapp"></i> الدعم الفني - معاذ الخوالدة
+                </a>
+            </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('mousemove', function(e) {
-            const x = e.clientX / window.innerWidth; const y = e.clientY / window.innerHeight;
-            document.getElementById('shape1').style.transform = `translate(${x * 40}px, ${y * 40}px)`;
-            document.getElementById('shape2').style.transform = `translate(-${x * 40}px, -${y * 40}px)`;
-        });
+        // داتا الخريجين مع أكواد التذاكر المستخرجة
+        const graduates = [
+    {id: "2200514122", name: "عائشة سعود محمد العياش", major: "التسويق الرقمي", shelf: "1", codes: ["OhbVrpo", "iVgRV5I", "fLBcbfn", "oGMbJmT"]},
+    {id: "2200514172", name: "سيرينا اسامة سلامة", major: "تسويق رقمي", shelf: "2", codes: ["PSIAoCL", "rZ3aWZk", "SBvrjn9", "Wvgfygw"]},
+    {id: "2200509075", name: "ديما سلطان كامل الخزاعله", major: "محاسبه وقانون الأعمال", shelf: "3", codes: ["2wMqZcU", "DIh7yfJ", "s1ON43x", "KmTecQo"]},
+    {id: "2200504046", name: "بشرى ايمن عبدالحميد خليل", major: "محاسبة", shelf: "4", codes: ["Xsf2o3g", "yrDO1xk", "xwnQrS7", "RPeMOkI"]},
+    {id: "2200508008", name: "سيلينا سعيد محمد وهدان", major: "نظم معلومات محاسبية", shelf: "5", codes: ["UpkDyr7", "OSJoRu1", "XXdo0cZ", "uzren68"]},
+    {id: "2200511091", name: "مادلين محمد عفيف الخطيب", major: "نظم المعلومات المالية والمصرفية", shelf: "6", codes: ["K4TunPF", "z46PDjq", "ipVJIqV", "LB5Lzxo"]},
+    {id: "2200503200", name: "مرح كامل اسعد بدران", major: "تمويل ومصارف", shelf: "7", codes: ["iGFfWd3", "hjOkYRB", "MeyyMDH", "qJ38aRU"]},
+    {id: "2200514214", name: "رهف أبراهيم سعود السعادي", major: "التسويق الرقمي", shelf: "8", codes: ["hR4IWrX", "PvhsBkD", "a9U4UqG", "WlG6g3O"]},
+    {id: "2200502134", name: "براءة جلال محمد ياسر التميمي", major: "ادارة اعمال", shelf: "9", codes: ["t1OGMmj", "xWkI9X7", "H6aMuFb", "h7x41Zt"]},
+    {id: "2200504217", name: "راما محمد حسن علاونه", major: "محاسبه", shelf: "10", codes: ["pdp4K8f", "fUF0eWI", "XiiQE8J", "kqH3MB9"]},
+    {id: "2200503219", name: "ديانا بشير قاسم عساف", major: "التمويل والمصارف", shelf: "11", codes: ["n7IWUSm", "TtzQPxC", "5HChpoe", "vbLJoLo"]},
+    {id: "2200508227", name: "صفاء ناصر عبدالهادي ابو خضير", major: "نظم المعلومات المحاسبية", shelf: "12", codes: ["aeTOdoe", "5c3veGp", "rQFnIiU", "74KKEpY"]},
+    {id: "2150504020", name: "اسيل حسين لافي السرحان", major: "المحاسبة", shelf: "13", codes: ["EZAmggQ", "BwBAD3U", "dRPPgdz", "UvZ3gpm"]},
+    {id: "2200508082", name: "الاء علي المشاني", major: "نظم المعلومات المحاسبية", shelf: "14", codes: ["mICiBlr", "Dp37eCZ", "32JgdPI", "1af7W2p"]},
+    {id: "2100511246", name: "هاله سعيد كامل فليفل", major: "تمويل ومصارف،", shelf: "15", codes: ["kAFEn3z", "5dkyayq", "7YYDsBS", "9UYJQTF"]},
+    {id: "2200503045", name: "ايات محمد رباح كعوش", major: "التمويل و المصارف", shelf: "16", codes: ["jmsn9dL", "VIdVudd", "LEG62Hk", "d9Gf2le"]},
+    {id: "2200504148", name: "لارا خليل محمود حويله", major: "المحاسبة", shelf: "17", codes: ["MeR3pzh", "84KpLMc", "NfAQLKH", "u7qnQTu"]},
+    {id: "2250504037", name: "Rania Almashaqbeh", major: "محاسبه", shelf: "18", codes: ["pqziQPt", "Du7W7ea", "DNKgeIn", "Gqi7w4e"]},
+    {id: "2200507025", name: "مرام محمد عيسى اسليم", major: "اقتصاد مال واعمال", shelf: "19", codes: ["4pxskC1", "ITtNZPH", "aQ0Jt7Q", "g84iqh4"]},
+    {id: "2250502021", name: "رهف علي محمود قنديل", major: "إدارة الأعمال", shelf: "20", codes: ["gVJjrsM", "nTvnRO2", "qGFq562", "dfOB1rc"]},
+    {id: "2200514016", name: "هاشم رجائي تفاحة", major: "تسويق", shelf: "21", codes: ["avXiOqk", "VCJTBJa", "he84S5j", "Ic1xLJj"]},
+    {id: "2200508124", name: "شهد سعد عبداللطيف الهندي", major: "نظم المعلومات المحاسبية", shelf: "22", codes: ["Bictx57", "Y3c5wnR", "pQgwXJ4", "3ANVj77"]},
+    {id: "2200502014", name: "مروه عاطف محمد ابو صفيه", major: "إدارة الأعمال", shelf: "23", codes: ["p3kZZl4", "AblV7vY", "7AZQ3VZ", "prkYSgy"]},
+    {id: "2100504098", name: "دعاء نايف محمد مشاقبه", major: "المحاسبة", shelf: "24", codes: ["3c2Eom0", "6Dwt0Y3", "oobQmzv", "r3e9Xrw"]},
+    {id: "2200502111", name: "نور محمد لطفي دريدي", major: "إدارة الأعمال", shelf: "25", codes: ["PGzR1Iv", "8bh4qlL", "9qcgMBw", "UYuBMGh"]},
+    {id: "2250502015", name: "سكينه منصور حامد العليمات", major: "ادارة اعمال", shelf: "26", codes: ["y5KmqcT", "BaH7ZIR", "U8VVQmx", "Be8Q6vN"]},
+    {id: "2200508077", name: "عبدالرزاق حابس العون", major: "نظم معلومات محاسبيه", shelf: "27", codes: ["uQ2hU5t", "GtQAuzS", "sJimAQ8", "yRV5lNK"]},
+    {id: "2200502137", name: "نور بسام فتح الله العقرباوي", major: "ادارة اعمال", shelf: "28", codes: ["tzJ1ats", "nBYLMPu", "DCCRnGE", "Y59YVkQ"]},
+    {id: "2350514001", name: "وائل قبلان عبده حرب", major: "تسويق رقمي", shelf: "29", codes: ["fsGQONv", "f08WpRt", "oZmjbcp", "EN2XeDA"]},
+    {id: "2200503240", name: "ديما نضال سنان سنان", major: "تمويل ومصارف", shelf: "30", codes: ["4OKmTSy", "FzpjPSa", "5W3X4gX", "BolZ9SH"]},
+    {id: "2200502055", name: "فداء خالد مصطفى هماش", major: "إدارة الأعمال", shelf: "31", codes: ["DdJp62h", "DiZDQHJ", "Mu8W5CN", "0U5GB16"]},
+    {id: "2200514209", name: "منه الله مجدي عيسى ابو شلنفح", major: "التسويق الرقمي", shelf: "32", codes: ["JC5kV3E", "CqWp1Or", "XXHFOpr", "CeTsprv"]},
+    {id: "2200509027", name: "عبد الاله ثروت حرب مصطفى", major: "محاسبة وقانون اعمال", shelf: "33", codes: ["u5Ifijo", "ySjTneA", "AvIDAdn", "1Ay5XL8"]},
+    {id: "2300514002", name: "شهد بلال الشطناوي", major: "إدارة الأعمال - التسويق الرقمي", shelf: "34", codes: ["Sb24WKy", "Ea8wtWy", "2591AIV", "VIZM5oF"]},
+    {id: "2200502185", name: "هناء كامل محمد نصار", major: "إدارة اعمال", shelf: "35", codes: ["orBFbyv", "QRZzUk1", "D6iNIb6", "zLKQbfP"]},
+    {id: "2200514046", name: "مسك يحيى قاسم العوسج", major: "التسويق الرقمي", shelf: "36", codes: ["Bi3Dldq", "yunDuvW", "4yrW81A", "q1fEbVI"]},
+    {id: "2200504034", name: "احمد معتصم عبدالرحمن البيك", major: "محاسبة", shelf: "37", codes: ["d8woPeX", "9PcWb8p", "m1bNjpi", "EQhK8nD"]},
+    {id: "2200503002", name: "رهف احمد عقله الزبن", major: "التمويل والمصارف", shelf: "38", codes: ["SqXxkMM", "9VThX0k", "9tgLb7t", "KR69yz8"]},
+    {id: "2200507015", name: "ساره جهاد كمال خليل", major: "اقتصاديات المال والاعمال", shelf: "39", codes: ["TmeLS1O", "pgSXt2R", "MZhYKYc", "wIBQxeG"]},
+    {id: "2200502206", name: "وعد رائد علي الخطيب", major: "إدارة الأعمال", shelf: "40", codes: ["Pva2A0F", "gB9xO51", "DTjBlUH", "9PrNZ6I"]},
+    {id: "2200504023", name: "روعه خليل اكرم غيظان", major: "محاسبة", shelf: "41", codes: ["XEDB0UL", "ru2p17f", "r4CpWDK", "NQyvbF2"]},
+    {id: "2200514233", name: "سلسبيل عبدالحميد احمد الربعي", major: "التسويق الرقمي", shelf: "42", codes: ["ulFnwZq", "vr4MS4r", "JaH8mfp", "UAFJWpS"]},
+    {id: "2100509002", name: "حسن ناصر حسن جرادت", major: "محاسبه وقانون الأعمال", shelf: "43", codes: ["EPTFCYb", "fsozSpt", "QLxEJHw", "BVJvwSD"]},
+    {id: "2200509003", name: "خديجة فارس عبدالهادي النجار", major: "المحاسبة وقانون الأعمال", shelf: "44", codes: ["rtqohUm", "uhVI8WS", "lmnVErU", "LWHMsg1"]},
+    {id: "2200511060", name: "نور الدين محمود جودت ايوب", major: "نظم المعلومات المالية والمصرفيه", shelf: "45", codes: ["msoxlta", "TIircdJ", "sS8iO3W", "Fg3aKsE"]},
+    {id: "2200503175", name: "رند حمد سالم البريحي", major: "التمويل والمصارف", shelf: "46", codes: ["ECvl9dq", "83Eh0ez", "FeKORdj", "jZK8tfp"]},
+    {id: "2200514115", name: "جيلان علي محمد بصبوص", major: "التسويق الرقمي", shelf: "47", codes: ["hJWAMMY", "NoXHyC6", "Ct3LBtK", "NdN9Vg8"]},
+    {id: "2200514105", name: "لارا عماد عبد الكريم المومني", major: "تسويق رقمي", shelf: "48", codes: ["WnOnqQf", "kplJeka", "ACSMEsc", "osTsS3D"]},
+    {id: "2200508090", name: "البتول عبدالباسط احمد الصبيحات", major: "نظم المعلومات المحاسبية", shelf: "49", codes: ["eRo7qYY", "OLQZ7mB", "hIoPj6r", "0jedkYt"]},
+    {id: "2200509118", name: "تسنيم سلامه محمود حناوي", major: "محاسبة وقانون اعمال", shelf: "50", codes: ["MV0K6sC", "hDStSz8", "rGIFCfM", "c4BVuMq"]},
+    {id: "2200508163", name: "حنين عصام داوود الصرفندي", major: "نظم المعلومات المحاسبية", shelf: "51", codes: ["bfo9R13", "KL8bWR0", "rKcWWlE", "HPC6rlL"]},
+    {id: "2200508223", name: "رهف نائل شحروج", major: "نظم معلومات محاسبيه", shelf: "52", codes: ["BO0FfEw", "AvuQg2k", "vASFsQ8", "z0WJcDf"]},
+    {id: "2200504115", name: "ريناد ابراهيم احمد حمد", major: "محاسبة", shelf: "53", codes: ["uquhXz3", "G0aQ3ID", "AdmHxNW", "FOCWdnr"]},
+    {id: "2200514136", name: "محمد جهاد ابراهيم السعدي", major: "تسويق رقمي", shelf: "54", codes: ["Ji7sC4S", "FhbOMZp", "TktJaJA", "fo16hD8"]},
+    {id: "2200504189", name: "ايه مروان المصري", major: "محاسبة", shelf: "55", codes: ["hP1jF7T", "sGTrA1E", "EpDJjym", "6MGV4i3"]},
+    {id: "2200504180", name: "فرح دحام نويديس الشرفات", major: "محاسبه", shelf: "56", codes: ["erXY2Av", "7YGr0as", "Ut1LLQF", "3jCIEwv"]},
+    {id: "2200504280", name: "ملك اشرف حسين شحاده", major: "المحاسبة", shelf: "57", codes: ["JWIyD7u", "3mSpKyo", "2XAcuVE", "T6ZyyQY"]},
+    {id: "2200502077", name: "ارجوان جمال عمر العاصي", major: "إدارة الأعمال", shelf: "58", codes: ["0PjF9ci", "G9Lv3g3", "2CgH6Da", "UjA3Pje"]},
+    {id: "2200509030", name: "أسيل نمر احمد عثمان", major: "محاسبه وقانون الاعمال", shelf: "59", codes: ["EYqvNSz", "Pf2v2R2", "Iy9uOT4", "WF3IcNe"]},
+    {id: "2200509014", name: "سمر باسم محمد حكمت الحوري", major: "محاسبة وقانون الاعمال", shelf: "60", codes: ["pOR6soV", "fBgWOT3", "gCkSt5b", "cuYdswx"]},
+    {id: "2100503203", name: "امينة حسين المزايدة", major: "تمويل ومصارف", shelf: "61", codes: ["BjpHAKR", "YlklfN3", "yNRpF6L", "joDOqDq"]},
+    {id: "2200509047", name: "ولاء جواد عبدالله", major: "محاسبة وقانون اعمال", shelf: "62", codes: ["Qa5ZD5s", "RIkeC8w", "LtO9BSq", "D2tmy2E"]},
+    {id: "2100503248", name: "المناهل سعود عايد الشويعر", major: "التمويل والمصارف", shelf: "63", codes: ["gpyKwKs", "Ssb1Qzr", "aK3RXVd", "6MVF155"]},
+    {id: "2200502082", name: "عبير محمد حسن أبوزينة", major: "إدارة الأعمال", shelf: "64", codes: ["sXZoMZw", "oOmNqRW", "UXQR1iO", "g5OPctY"]},
+    {id: "2200511020", name: "سندس يوسف عبدالله حسن", major: "نظم المعلومات الماليه والمصرفيه", shelf: "65", codes: ["CcLxUif", "6suVAlm", "iYI4xHG", "6r1kq60"]},
+    {id: "2200514085", name: "احمد محمد مصطفى احمد", major: "تسويق رقمي", shelf: "66", codes: ["8E9ZsV3", "vZhD9ej", "W9o3RUR", "z92ZJxf"]},
+    {id: "2200504132", name: "منار ابراهيم عبدالله خلاوي", major: "المحاسبة", shelf: "67", codes: ["YzaqIhD", "xRVRqLy", "0O8xgRo", "EbN48Ju"]},
+    {id: "2200514112", name: "رناد زياد محمد الخوالدة", major: "التسويق الرقمي", shelf: "68", codes: ["6NoPeO0", "D6StPAh", "ic8ctFh", "gp4IiyD"]},
+    {id: "2200508151", name: "لارا رامز صدقي محمد", major: "نظم المعلومات المحاسبية", shelf: "69", codes: ["xQ8VS8I", "ALVUj4A", "Pg1FNA8", "8rcSxnC"]},
+    {id: "2200511186", name: "ضياء محمد مصطفى السالم", major: "نظم معلومات مالية ومصرفية", shelf: "70", codes: ["C8p2xgR", "xI5Pwdz", "rm9h820", "DfQnPOM"]},
+    {id: "2100503034", name: "سيف الدين محمد أبراهيم أبو الهيجاء", major: "التمويل والمصارف", shelf: "71", codes: ["bdYvpiY", "Kne1WJn", "Ln03ovX", "jY5Mar2"]},
+    {id: "2200503212", name: "سديل عبد الرحيم محمود اسعد", major: "التمويل والمصارف", shelf: "72", codes: ["jiIqZlh", "Q3biawY", "YpLublq", "diVAHhV"]},
+    {id: "2200502086", name: "امل موفق خلف هلال", major: "إدارة الأعمال", shelf: "73", codes: ["eECXxGL", "gCGo8Nc", "UY63QHt", "DP9bdE2"]},
+    {id: "2200514173", name: "رانيا مصطفى يوسف ابوالرب", major: "التسويق الرقمي", shelf: "74", codes: ["zBRgFT6", "Ce5fuMj", "eirNOLJ", "TuyMHsD"]},
+    {id: "2200503052", name: "زينه ايمن احمد حماده", major: "تمويل ومصارف", shelf: "75", codes: ["GMBgYSh", "2PP4XJU", "3nBC4oA", "v0DzAUg"]},
+    {id: "2200514116", name: "سبأ فايز سلامه", major: "التسويق الرقمي", shelf: "76", codes: ["uBuQqx9", "jR7Eef1", "ffBgVVx", "ZiJdL9J"]},
+    {id: "2200511165", name: "تسنيم رامي عزمي القيسي", major: "نظم معلومات مالية ومصرفية", shelf: "77", codes: ["JvQhAw3", "Q8WB36U", "d9sMtwg", "KGnjQEo"]},
+    {id: "2200503101", name: "فاطمة محمد حسن ابو فرحان", major: "التمويل والمصارف", shelf: "78", codes: ["2gw2Jxh", "WrKoZB2", "JX0NNRP", "JbM7Q1S"]},
+    {id: "2200514124", name: "يقين علي عشوي العون", major: "التسويق الرقمي", shelf: "79", codes: ["rblrSWt", "6vwal3j", "KQzejVO", "bfVHnyA"]},
+    {id: "2200508197", name: "شهد مصطفى كمال خريشي", major: "نظم المعلومات المحاسبية", shelf: "80", codes: ["DvkxtUu", "X8KMf4d", "jkWNdRf", "rCQBFMC"]},
+    {id: "2300514120", name: "شهد احمد موسى العمري", major: "تسويق رقمي", shelf: "81", codes: ["ArnWGhw", "BhsRRLF", "HQtcozM", "dant8nX"]},
+    {id: "2200514221", name: "ماجده صلاح حسان الهديب", major: "تسويق رقمي", shelf: "82", codes: ["iWqsuha", "FVBliyI", "ToGJ1QZ", "wez3VcB"]},
+    {id: "2200514087", name: "رؤى سهيل احمد قطيش", major: "تسويق رقمي", shelf: "83", codes: ["bD6e3uK", "BKzTOAs", "hzb9ukZ", "8ND1S6x"]},
+    {id: "2200503166", name: "ايه صادق حراحشة", major: "تمويل ومصارف", shelf: "84", codes: ["fB2gpBL", "zHfz3tV", "vovXkeG", "OhHGm5X"]},
+    {id: "2200511065", name: "محمد حماد محمود الشرفات", major: "نظم معلومات مالية ومصرفية", shelf: "85", codes: ["wwU90P0", "jpgjqml", "MjWWPel", "8XOFDWK"]},
+    {id: "2200504038", name: "رامي زياد علي ابو صلاح", major: "المحاسبة", shelf: "86", codes: ["WLCR74K", "PONu3Ou", "jCeECOt", "YrLdwGe"]},
+    {id: "2200509154", name: "بتول خالد محمود النعيمي", major: "المحاسبة وقانون الاعمال", shelf: "87", codes: ["tDCcdx1", "seP32fN", "MGyDLJ9", "YV5cC6Z"]},
+    {id: "2200514232", name: "ضيف الله محمد ضيف الله الزعبي", major: "التسويق الرقمي", shelf: "88", codes: ["KPmuMEG", "j9dCgZ5", "1vTfGPl", "cpTCCHH"]},
+    {id: "2100503140", name: "فرحي حسين نايف البريحي", major: "التمويل والمصارف", shelf: "89", codes: ["Nkxx6sy", "AXvRMdY", "OPvevgJ", "RysqU2Q"]},
+    {id: "2200504093", name: "ساجده علي خليفه الشرعه", major: "محاسبه", shelf: "90", codes: ["96M3jvf", "LQj6wt9", "PSQziMT", "8ftJyPY"]},
+    {id: "2200509015", name: "لميس ابراهيم موسى العسعس", major: "المحاسبة وقانون الأعمال", shelf: "91", codes: ["v0iQS18", "VR6HfPQ", "BGxbxtl", "8nv8XFm"]},
+    {id: "2200514117", name: "ميار أحمد عواد الهواري", major: "تسويق رقمي", shelf: "92", codes: ["oijes2Y", "gGXI1V4", "HcQv4XN", "iMyjkl1"]},
+    {id: "2200509104", name: "فاطمة ناصر صب لبن", major: "محاسبة وقانون اعمال", shelf: "93", codes: ["SXNZ5kU", "CcAxRUp", "CNsWVYC", "oIpt9ZY"]},
+    {id: "2200511019", name: "سماح وسام منصور كسبه", major: "نظم المعلومات الماليه والمصرفيه", shelf: "94", codes: ["E51mxR8", "KCDXsXy", "GHA9k0m", "ZMi3qdP"]},
+    {id: "2150504064", name: "احمد هيثم محمد ابو شادوف", major: "محاسبه", shelf: "95", codes: ["E3xJ7gT", "2H2hsfW", "krC5Gj1", "Bf86o0C"]},
+    {id: "2200514090", name: "باسل محمد فلاح مخادمه", major: "التسويق الرقمي", shelf: "96", codes: ["4w7bAdz", "Gxpyfxo", "bu7g1TP", "vYjics6"]},
+    {id: "2200509081", name: "رغد مفلح عيد سرحان", major: "محاسبه وقانون أعمال", shelf: "97", codes: ["1ES1iWT", "ECNa5fb", "qn1jJ8U", "MHBhXsp"]},
+    {id: "2100509012", name: "سيف الاسلام سامر المدفعي", major: "المحاسبة وقانون الاعمال", shelf: "98", codes: ["thdpAOY", "NDeh15F", "MIbOGKp", "TjsBaNw"]},
+    {id: "2200509192", name: "بيان عماد كحيل", major: "المحاسبة وقانون الاعمال", shelf: "99", codes: ["pKAlQQf", "Hxe9HIG", "YGJby3E", "cOyxqVb"]},
+    {id: "2200508026", name: "ايهاب محمد علي", major: "نظم المعلومات المحاسبية", shelf: "100", codes: ["wYewpUQ", "OgXLVWv", "icwIv0P", "l1XRDSE"]},
+    {id: "2200509121", name: "نورا أسامة سعدات الخطيب", major: "محاسبة وقانون الأعمال", shelf: "101", codes: ["OlZieTX", "8DcsmcY", "m4cu7tG", "z0IEqcW"]},
+    {id: "2200504082", name: "مروى اللاحم", major: "محاسبه", shelf: "102", codes: ["Pmsw3Xd", "3PvrhZx", "B4zVC59", "yvlFSFx"]},
+    {id: "2200504200", name: "حنين محمد شريم", major: "محاسبه", shelf: "103", codes: ["7ZHrZfU", "BfBM0lI", "sugfuQs", "tCMTBkS"]},
+    {id: "2200502060", name: "رؤى وليد محمد عشا", major: "ادارة اعمال", shelf: "104", codes: ["CwCcU36", "wNBrOY8", "deQOzxG", "ZVRk8bj"]},
+    {id: "2200504073", name: "شهد جهاد عبد الجعبري", major: "محاسبة", shelf: "105", codes: ["2MRYCci", "epXPxxy", "8KcMjRC", "8xxCWeK"]},
+    {id: "2200511113", name: "رؤى احمد عطية ابو زاهر", major: "نظم المعلومات المالية والمصرفية", shelf: "106", codes: ["iHxzuPr", "p9hbVlF", "Hy6JhqX", "qTCnNsS"]},
+    {id: "2200502107", name: "اية سائد مفيد القاضي", major: "ادارة الاعمال", shelf: "107", codes: ["6Fmhi2e", "Cl5TCfZ", "R92uQwT", "eJIs5t2"]},
+    {id: "2200503107", name: "ليث فتحي احمد شواقفه", major: "تمويل ومصارف", shelf: "108", codes: ["kTT7SOl", "YxGohmY", "ipYFbxJ", "KxDZJiN"]},
+    {id: "2200504088", name: "دعاء محمد فضل الماضي", major: "محاسبه", shelf: "109", codes: ["4fetzTU", "EHAXA0K", "eiuPeCD", "RHwi41X"]},
+    {id: "2200508089", name: "راما موفق هليل السليم", major: "نظم المعلومات المحاسبية", shelf: "110", codes: ["JOLlX9i", "BG63d1h", "Hjtkku7", "Tow88H5"]},
+    {id: "2200504136", name: "جهاد حسام خضر", major: "المحاسبة", shelf: "111", codes: ["s2fqmO9", "JriOtNI", "fGPkL8L", "jkQNU5M"]},
+    {id: "2200503024", name: "فرح عامر راشد", major: "تمويل ومصارف", shelf: "112", codes: ["v17Kc03", "bfc8PXK", "qPnXKAN", "ObF4OIs"]},
+    {id: "2200502150", name: "لين محمد سعيد مشّه", major: "إدارة أعمال", shelf: "113", codes: ["P9tEpZZ", "RztDeSd", "kCAEDnv", "Mju3TuU"]},
+    {id: "2200502052", name: "سيرين هاني عبدالله عماره", major: "إدارة أعمال", shelf: "114", codes: ["3wziWxG", "JgupDhr", "Cpjgds8", "y3NAp93"]},
+    {id: "2200509043", name: "عبد الله محمد عطا موسى", major: "المحاسبه وقانون الاعمال", shelf: "115", codes: ["5k0u7KU", "umWkFGD", "F4tFbf8", "zGD9pnL"]},
+    {id: "2200509051", name: "لين امجد ابوريا", major: "محاسبة وقانون الاعمال", shelf: "116", codes: ["wddsFM4", "1PREsIa", "2gBi4qU", "xWzxczd"]},
+    {id: "2200503010", name: "شهد انور جروان", major: "التمويل والمصارف", shelf: "117", codes: ["KJmxJse", "yGCWJr0", "NRNhigz", "xYvJ8xW"]},
+    {id: "2200504228", name: "روان وديع حسين عبدالله", major: "المحاسبة", shelf: "118", codes: ["jmMGzGc", "cciTvZE", "HDjM5Gi", "u7NukzN"]},
+    {id: "2200504152", name: "رؤى محمود عبدالعال قعقور", major: "محاسبة", shelf: "119", codes: ["V1tLvG1", "GIFTKtE", "0bxvRhA", "LtY5U3S"]},
+    {id: "2200504032", name: "زينه سهيل دحبور", major: "المحاسبة", shelf: "120", codes: ["ObMEq9P", "YXLKoUd", "LEkHOUN", "X1yj0Rp"]},
+    {id: "2100509184", name: "ميس احمد خليف بني ياسين", major: "المحاسبة وقانون الاعمال", shelf: "121", codes: ["cK8Shmb", "CuAjASn", "AGXN6E3", "2VUdTiH"]},
+    {id: "2200511145", name: "مرح مراد عساف", major: "نظم معلومات ماليه", shelf: "122", codes: ["nJuQEHy", "u9lD6Iv", "IwRX3UR", "PZSqNEm"]},
+    {id: "2200503080", name: "أية علي عبد الله ابو صعيليك", major: "التمويل والمصارف", shelf: "123", codes: ["9prJto8", "tXsTnST", "FuEwJ77", "YUrshKR"]},
+    {id: "2350504015", name: "عمر يحيى يوسف جرار", major: "المحاسبة", shelf: "124", codes: ["Iy5z0w9", "XZjscs9", "Tfw7CPq", "VEnm0Ir"]},
+    {id: "2200504026", name: "طارق رامي طلال العش", major: "محاسبة", shelf: "125", codes: ["7JSrigN", "VLppdQ5", "HoOodgA", "vTEgRXi"]},
+    {id: "2200503152", name: "قصي وائل نبيل الكلباني", major: "التمويل و المصارف", shelf: "126", codes: ["a9J7kAP", "744EEPm", "W9susPd", "6XfPKoI"]},
+    {id: "2200503021", name: "ليان ابو منشار", major: "تمويل و مصارف", shelf: "127", codes: ["VU27c66", "lA41l76", "c1zYFl7", "V937s4c"]},
+    {id: "2200511137", name: "محمد مصباح سليمان دراغمه", major: "نظم معلومات مالية ومصرفية", shelf: "128", codes: ["atKMg7v", "sDPIHF4", "8i2GDrm", "ZhvkUDP"]},
+    {id: "2250514001", name: "ايات حمّاد", major: "تسويق رقمي", shelf: "129", codes: ["qTlaVvY", "sKRWmlN", "2O5z0BG", "ufzQgli"]},
+    {id: "2200509025", name: "احمد محمد يوسف رشيد", major: "محاسبه وقانون الاعمال", shelf: "130", codes: ["Eu7paqy", "pCWr9vt", "LUKaqPx", "SpdQhDt"]},
+    {id: "2200509088", name: "ليث بلال مصطفى عيسى", major: "محاسبه وقانون الاعمال", shelf: "131", codes: ["kzRG754", "TXtShO6", "8sxNoo9", "iEjDVMx"]},
+    {id: "2100504102", name: "جنة علي احمد الجرايدة", major: "تخصص المحاسبة", shelf: "132", codes: ["ASJ6EWI", "ZQ0nWpR", "WM3YfHC", "HTxe6Kh"]},
+    {id: "2200503184", name: "رهف احمد فايد حمدان", major: "التمويل والمصارف", shelf: "133", codes: ["d1J5GmK", "Ijku2HC", "hRnTLFf", "5GCZdDi"]},
+    {id: "2200507004", name: "احمد اسماعيل مطر", major: "اقتصاد مال و اعمال", shelf: "134", codes: ["GADKdJD", "RZtUbzq", "0aVnLec", "BwSeId7"]},
+    {id: "2200504013", name: "عمر مامون ناجي عوده", major: "محاسبة", shelf: "135", codes: ["5e7EcsA", "lXiXPUP", "9Ax5yC3", "66yyfR9"]},
+    {id: "2300514076", name: "حسين عمر حسين فارس", major: "تسويق رقمي", shelf: "136", codes: ["Q3IiP3w", "hlIzHiU", "o1aWbtD", "RUIBIy0"]},
+    {id: "2200509077", name: "شهد جهاد وحيد النعيمي", major: "محاسبه وقانون اعمال", shelf: "137", codes: ["opDwjrm", "74UWhcZ", "QANX744", "bpnegMc"]},
+    {id: "2200502205", name: "نيرمين حكمت صالح", major: "ادارة الاعمال", shelf: "138", codes: ["CMRT3dp", "VczCoIn", "W3XdiGs", "o06UKuK"]},
+    {id: "2200504233", name: "ملاك امجد طه فراج", major: "محاسبة", shelf: "139", codes: ["MXR0upt", "4jQHoAt", "rdJ8L4V", "6lORBJF"]},
+    {id: "2200503199", name: "سجى إبراهيم رسمي", major: "تمويل ومصارف", shelf: "140", codes: ["dw8PQyY", "HuSAAjt", "ylWIEp2", "ot2TjZD"]},
+    {id: "2200514027", name: "كنده محمد أصلان", major: "التسويق الرقمي", shelf: "141", codes: ["6dJA9AJ", "Hiypqnv", "Pf7C2xf", "IU1mdry"]},
+    {id: "2200511198", name: "لجين شادي حسن دوله", major: "نظم المعلومات المالية و المصرفية", shelf: "142", codes: ["RMMc3em", "ZWLUQJn", "En36vt9", "6an7m9V"]},
+    {id: "2200514215", name: "نورا ابراهيم اثفيل الجبور", major: "Digital Marketing", shelf: "143", codes: ["hVWE6pS", "MTnz6pJ", "uXsyDIP", "wtqxG4F"]},
+    {id: "2200514100", name: "لمى مراد بني احمد", major: "تسويق رقمي", shelf: "144", codes: ["DgZUEW1", "u6nxuAc", "K3oVjbq", "J7LLUAs"]},
+    {id: "2200504010", name: "احمد صبحي الطباخي", major: "المحاسبة", shelf: "145", codes: ["jmvoyK1", "pFJP8Rv", "qW0F9UP", "VFDkUYw"]},
+    {id: "2200514238", name: "غفران ابراهيم صبيح الشرفات", major: "التسويق الرقمي", shelf: "146", codes: ["kiUIFl6", "4IP9dHc", "12e80Qd", "WaAi1Oo"]},
+    {id: "2200502016", name: "بتول باسم علي البداوي", major: "إدارة الأعمال", shelf: "147", codes: ["eTjanGD", "xdNOQ7N", "6EQFbaI", "JAabHUr"]},
+    {id: "2200504216", name: "ايمان إبراهيم محمد البدوي", major: "محاسبة", shelf: "148", codes: ["IsbG0SR", "BZ86lg6", "gHjpmNH", "q0wrYzf"]},
+    {id: "2200503046", name: "آلاء محمد خليل كناني", major: "التمويل والمصارف", shelf: "149", codes: ["x9zDKpS", "otR02fP", "2PWcfzy", "yJEdOaS"]},
+    {id: "2200514203", name: "روان رزق سالم عليمات", major: "تسويق رقمي", shelf: "150", codes: ["kfF2BPY", "vK2g5H6", "con53S4", "KErc7eR"]},
+    {id: "2200504191", name: "دنيا نضال ابو صبح", major: "المحاسبه", shelf: "151", codes: ["7r5IKQc", "l72ub9n", "LjW0T0z", "7etkKpK"]},
+    {id: "2200514068", name: "طارق محسن محمد المحيميد", major: "تسويق رقمي", shelf: "152", codes: ["12yR5Iv", "yWViYSU", "fGVwdgB", "o1evMXN"]},
+    {id: "2200514243", name: "اسراء إبراهيم محمد شريتح", major: "التسويق الرقمي", shelf: "153", codes: ["9MzXubO", "rYCFowJ", "8yBlRLQ", "yfXNsZp"]},
+    {id: "2200509018", name: "حلا نضال محمد سند", major: "محاسبة وقانون الاعمال", shelf: "154", codes: ["TefrjyT", "YOjVyux", "gfa8tCx", "WrgiflB"]},
+    {id: "2100511283", name: "شهد عوض مناع خضر", major: "نظم معلومات ماليه ومصرفيه", shelf: "155", codes: ["CJJGAgb", "fwJfMMY", "u3yasAy", "XfU5J5p"]},
+    {id: "2300503111", name: "رزان كمال قاسم ابو غانم", major: "تمويل و مصارف", shelf: "156", codes: ["KHkRyki", "rtrFjek", "BrAtEYe", "xq8pUOF"]},
+    {id: "2200509074", name: "وحيده علي اسعود الخوالده", major: "محاسبةوقانون الأعمال", shelf: "157", codes: ["MNmDgit", "a8zv1Ny", "Z3vCvB0", "03PMitu"]},
+    {id: "2200514121", name: "إسراء عبدالله مشوح الشرفات", major: "التسويق الرقمي", shelf: "158", codes: ["M8SmEul", "9z9usVS", "OF9KYpu", "yr0Yzxh"]},
+    {id: "2200514244", name: "نورس عبدالرحمن عليمات", major: "تسويق رقمي", shelf: "159", codes: ["7KmLIlR", "XJb8UD8", "TnCZs1S", "e02YYAR"]},
+    {id: "2200514237", name: "مرعي الخزاعله", major: "التسويق الرقمي", shelf: "160", codes: ["FiOtpqQ", "jTBYyeC", "MELzIG7", "63SAIcY"]},
+    {id: "2200509004", name: "ليث احمد محمد مشاقبه", major: "محاسبه وقانون أعمال", shelf: "161", codes: ["9xS5ZIM", "O6fgXpQ", "QwkPNcK", "PRPz9Wv"]},
+    {id: "2200508234", name: "نغم سهيل حمام", major: "نظم معلومات محاسبيه", shelf: "162", codes: ["9YBgagq", "oGVHJLS", "KoCxzDX", "RLSGjwb"]},
+    {id: "2200509006", name: "خالد محمد ظاهر الحوامدة", major: "محاسبة وقانون أعمال", shelf: "163", codes: ["EgsA69f", "h18Ujwt", "vDYnHEw", "EgCUSCu"]},
+    {id: "2200503141", name: "سارة أمير الأعرج", major: "التمويل و المصارف", shelf: "164", codes: ["etcZThb", "2vPgRZk", "7VpHlJk", "vJB9DoZ"]},
+    {id: "2200511130", name: "يوسف غسان ابو عمر", major: "نظم معلومات مالية ومصرفية", shelf: "165", codes: ["zOllOQB", "zbVN4mC", "LByaTnn", "rWTZYeK"]},
+    {id: "2200508043", name: "ميرا اياد ابو طوق", major: "نظم المعلومات المحاسبية", shelf: "166", codes: ["gZ3Ilxu", "mDhqQ3F", "H9OuMyN", "zLhww2D"]},
+    {id: "2300502110", name: "نور محمد علي الزبن", major: "ادارة اعمال", shelf: "167", codes: ["Nl0RTZt", "6NLfRiu", "hpthlxS", "jGyAMiK"]},
+    {id: "2200514029", name: "ريماس النجار", major: "تسويق رقمي", shelf: "168", codes: ["yBlFOIS", "6P7lJkF", "silu1CN", "d3w8aFi"]},
+    {id: "2150503009", name: "بشار شاكر محمود اشنينة", major: "التمويل والمصارف", shelf: "169", codes: ["m0y9JGP", "FARFAT1", "CFkfKbY", "WoscroI"]},
+    {id: "2200509122", name: "بلقيس اشرف ضامن ابو صرة", major: "محاسبة و قانون الاعمال", shelf: "170", codes: ["skXDKVX", "XFJGhKh", "rXI0xI0", "WcWUCIn"]},
+    {id: "2200508055", name: "عبدالرحمن سعود عبدالله ابو صلاح", major: "نظم المعلومات المحاسبية", shelf: "171", codes: ["BgV1PWp", "t3cCqw3", "0fC3hXZ", "pnZVLSw"]},
+    {id: "2200514070", name: "هاني عامر محمد حداد", major: "التسويق الرقمي", shelf: "172", codes: ["3TNOBkN", "iYn0nZd", "KwIrMIk", "uTssKr8"]},
+    {id: "2200504187", name: "تالا وليد عادل", major: "محاسبه", shelf: "173", codes: ["2G5R0gi", "9WYA6dr", "3PiS3ip", "jTu1pW1"]},
+    {id: "2100507049", name: "ابتسام عبدالله فالح السرحان", major: "اقتصاد مال وأعمال", shelf: "174", codes: ["RzFjKOr", "OAyCeOY", "4XfzGVr", "S74xD8F"]},
+    {id: "2150504070", name: "محمد علاء الطويل", major: "المحاسبة", shelf: "175", codes: ["uLa3X2U", "fUDOQSw", "2eYIzn9", "B0nFru1"]},
+    {id: "2200514067", name: "معتز جابر محمد الهزايمة", major: "تسويق رقمي", shelf: "176", codes: ["svJKiK2", "FYv5RWd", "cgOY1Db", "h72kCDa"]},
+    {id: "2200504209", name: "مجدولين علي سليم ارشيد", major: "المحاسبة", shelf: "177", codes: ["9BmS6i4", "Ptk374r", "fPxqfxQ", "5PkdzOt"]},
+    {id: "2200514123", name: "طيف ياسر صقر المخاريز", major: "التسويق الرقمي", shelf: "178", codes: ["USWoBPf", "TganEei", "LoHRCaa", "Sv0h3BS"]},
+    {id: "2200503140", name: "زينه وائل ابو لبن", major: "تمويل ومصارف", shelf: "179", codes: ["iEeoyfU", "Zggux4t", "iyX0W3i", "PRjeHKa"]},
+    {id: "2200502076", name: "أية محمد عواد الحموري", major: "إدارة الأعمال", shelf: "180", codes: ["NPkCwUn", "OVj6ANR", "C3nf5gi", "WhLUyw9"]},
+    {id: "2200514108", name: "أمين يحيى زكريا الدويك", major: "التسويق الرقمي", shelf: "181", codes: ["BuYiprP", "fpJMMUM", "sX8Sb22", "Q4tnHMG"]},
+    {id: "2100508096", name: "أمواج قاسم محمد المزاودة", major: "نظم معلومات محاسبيه", shelf: "182", codes: ["mVzsPdY", "5Y9pFyh", "pFOMeH4", "ax7uiy3"]},
+    {id: "2200509191", name: "ميرا وليد توفيق باكير", major: "المُحاسبة وقانون الأعمال", shelf: "183", codes: ["1KAxIRl", "WE9XebL", "eaqnc7d", "8YzGsOT"]},
+    {id: "2200504074", name: "ياسمين مازن وليد الخليلي", major: "محاسبه", shelf: "184", codes: ["GXABSzf", "OIINjrf", "tfG6nZj", "IuzLOW1"]},
+    {id: "2150508005", name: "حازم محمد حسين مسعد", major: "نظم معلومات محاسبية", shelf: "185", codes: ["PRPetSB", "U92pdpf", "7BhDNMd", "tQVQVlh"]},
+    {id: "2100504262", name: "عمر عصام فوزي شريدة", major: "محاسبة", shelf: "186", codes: ["aTiSakF", "8wHHY0U", "qkxiVX3", "rU4hX5b"]},
+    {id: "2200503044", name: "رندة منير طوابين", major: "تمويل ومصارف", shelf: "187", codes: ["vZBrHeq", "TKOeFDG", "xdF2Kkx", "kqXg5KR"]},
+    {id: "2200514052", name: "شهد رائد مسلم أبو سيف", major: "التسويق الرقمي", shelf: "188", codes: ["UhoVGac", "23apcEx", "y6jl792", "cJZ6TVP"]},
+    {id: "2200503023", name: "رنين ماجد يونس بدر", major: "تمويل ومصارف", shelf: "189", codes: ["AoupA6U", "ur0eKxh", "GR5dloZ", "Hc9ze4D"]},
+    {id: "2200503011", name: "زين مصطفى محمد امين النعنيش", major: "تمويل ومصارف", shelf: "190", codes: ["3sX2tuf", "JDaxmsK", "YtVNpDx", "LFXXmU5"]},
+    {id: "2100511079", name: "عصام مدالله عواد المشاقبة", major: "نظم معلومات ماليه ومصرفية", shelf: "191", codes: ["IWYpja7", "AboIwO1", "S4a8vaW", "Qy2VUtg"]},
+    {id: "2100511319", name: "خالد عماد رجا الصدقه", major: "نظم معلومات مالية ومصرفية", shelf: "192", codes: ["nHpAF9d", "jTrfc6o", "52HAS5x", "DVfLgGi"]},
+    {id: "2200509135", name: "شذى عصام شاهين", major: "محاسبه وقانون أعمال", shelf: "193", codes: ["O0zeLKd", "BQ9ipsq", "2u7ZzS1", "VuuCroe"]},
+    {id: "2200508037", name: "عبيدة لؤي الفارس", major: "نظم معلومات محاسبيه", shelf: "194", codes: ["8miXXLg", "jgkCDuA", "hIw9XnC", "tDq2hfk"]},
+    {id: "2000508041", name: "سليمان خالد رجا الهدار", major: "نظم المعلومات المحاسبيه", shelf: "195", codes: ["ZRt0TSM", "cn12ujf", "Tp9wzGd", "Rtq0lb8"]},
+    {id: "2200509055", name: "نغم رمزي شويكي", major: "محاسبة وقانون اعمال", shelf: "196", codes: ["z2CJVJp", "gDgZYih", "ad1Xoim", "0zxRO8P"]},
+    {id: "2200504091", name: "رغد علي المزاودة", major: "محاسبة", shelf: "197", codes: ["fLLq60e", "bem5PCZ", "if521Zv", "hc8Ddk7"]},
+    {id: "2200503198", name: "دارين نائل الجيلاني", major: "التمويل والمصارف", shelf: "198", codes: ["KB0UzFb", "yRBlwn6", "lrrC4jc", "NNNpPsF"]},
+    {id: "2300514003", name: "محمد جعفر القضاة", major: "تسويق رقمي", shelf: "199", codes: ["A4JEdfr", "yiAmP4Z", "HpOZIYb", "yYTwEIY"]},
+    {id: "2200509095", name: "ديما عامر المفالحه", major: "محاسبة وقانون الاعمال", shelf: "200", codes: ["Fw6KGuy", "rlbuMob", "5ZXrdZE", "HwXLokg"]},
+    {id: "2200509156", name: "سيرين ايوب جبر", major: "محاسبة وقانون الأعمال", shelf: "201", codes: ["pQprI0Y", "6VdW8oK", "2Zyw712", "llpLuZV"]},
+    {id: "2200504203", name: "لانا سائد قطعيين", major: "محاسبة", shelf: "202", codes: ["Sw6LbTS", "w8KKjK8", "m1Z4FIt", "lFcfdoM"]},
+    {id: "2100502017", name: "عبيدة تيسير ابراهيم الشملتي", major: "ادارة الاعمال", shelf: "203", codes: ["obHEav6", "NmZivTl", "6Z23udb", "jLT6jXh"]},
+    {id: "2200508088", name: "رهف امجد الجبارين", major: "نظم معلومات محاسبية", shelf: "204", codes: ["2H3x9ex", "T8QzLgv", "tuikU8B", "YO9FPul"]},
+    {id: "2200508154", name: "نغم محمد العموش", major: "نضم معلومات محاسبية", shelf: "205", codes: ["T9JS47N", "YwoQL0l", "ytUSsil", "Ua8S8Kz"]},
+    {id: "2200511181", name: "أريام فراس نصر الزبيد", major: "نظم معلومات ماليه", shelf: "206", codes: ["2X9KclM", "u6Z9NoO", "Kg7FjvV", "epwukO4"]},
+    {id: "2200514093", name: "أحمد كمال الخزعلي", major: "التسويق الرقمي", shelf: "207", codes: ["9f0TQOU", "4vCaqnp", "SewqYgU", "adyCUAk"]},
+    {id: "2200514113", name: "الطاف سامي ابو دلبوح", major: "التسويق الرقمي", shelf: "208", codes: ["4AF4ywI", "yg1EY3K", "PWRokCe", "Z2csbuq"]},
+    {id: "2000503090", name: "بندري عطاالله كريم العنزي", major: "التمويل ومصارف", shelf: "209", codes: ["8gevk4y", "kUeJ85f", "vMN5ETb", "B8PkM4B"]},
+    {id: "2200511104", name: "بهاء الدين فهمي أحمد أبوجابر", major: "نظم معلومات مالية ومصرفية", shelf: "210", codes: ["kdgvnmA", "SJU7UIq", "Qstpgdz", "KJ1Fjdx"]},
+    {id: "2200511110", name: "تسنيم فراس الخطيب", major: "نظم المعلومات المالية والمصرفية", shelf: "211", codes: ["aBfs0QO", "MEmgbnk", "OsfE2ht", "YzEF5Qq"]},
+    {id: "2200504011", name: "حمزة غازي خالد الشبيلات", major: "المحاسبة", shelf: "212", codes: ["fPIylx4", "yxlCcqC", "Dqo1rKd", "jWSQgfQ"]},
+    {id: "2200504214", name: "دانا إياد حسن عبداللطيف", major: "المُحاسبه", shelf: "213", codes: ["wZIAWLo", "Jd1y0HA", "9IR37EK", "4pEtfz5"]},
+    {id: "2200502067", name: "ديما خالد أبو زهره", major: "اداره اعمال", shelf: "214", codes: ["2TcGK5H", "ZKRNjh8", "WCl8knZ", "micBfRB"]},
+    {id: "2200508140", name: "رغد محمد ابراهيم الشني", major: "نظم معلومات المحاسبيه", shelf: "215", codes: ["m0Oj1Mq", "u6U6Zef", "yJzJu2r", "HD63aYS"]},
+    {id: "2200503245", name: "رغد هاني ثلجي العظامات", major: "التمويل والمصارف", shelf: "216", codes: ["NLHYAhA", "jjKLLW9", "8g7gKXg", "Ys3I4w4"]},
+    {id: "2200504087", name: "رنيم منصور عقيل الشرفات", major: "المحاسبة", shelf: "217", codes: ["AqyPFKM", "EclrzjN", "MRSzcz4", "4vSpdVE"]},
+    {id: "2200503093", name: "روعه اللصاصمة", major: "تمويل ومصارف", shelf: "218", codes: ["6r5xbv0", "Yttr1F2", "SRg3oit", "VCX0urU"]},
+    {id: "2200511143", name: "سجى متروك عواد العدواني", major: "نظم المعلومات المالية والمصرفية", shelf: "219", codes: ["AMPfmCn", "60AVFWH", "3x0dGYk", "etTGziX"]},
+    {id: "2200502145", name: "سرينا مراد ابو ليل", major: "إدارة الاعمال", shelf: "220", codes: ["2H4Kblm", "41m1dpc", "Dd6xTmr", "x0DGzO7"]},
+    {id: "2300514005", name: "سلطان حاتم سلطان", major: "التسويق الرقمي", shelf: "221", codes: ["hRbpxFM", "Cl93ELJ", "wwk15qV", "1Sfsbyd"]},
+    {id: "2200508212", name: "سيدرا كمال سعدي ابو هندي", major: "نظم المعلومات المحاسبية", shelf: "222", codes: ["k2KX9n2", "oPoRnrP", "AGb3X9X", "RaE6iPl"]},
+    {id: "2200514034", name: "ضياء محمد ابراهيم عليان", major: "تسويق رقمي", shelf: "223", codes: ["MZaoqMZ", "8tT9TPr", "B5y2wDq", "nDtRH0N"]},
+    {id: "2200514073", name: "عبد الرحم منذر يعقوب", major: "تسويق رقمي", shelf: "224", codes: ["zLgaGQ9", "11xJPMM", "stRgEev", "rOu3rqP"]},
+    {id: "2100511320", name: "عبدالله احمد الدهيدي", major: "نظم معلومات مالية ومصرفية", shelf: "225", codes: ["T85Ptmj", "HWp5dZ2", "ZZMzQuR", "iUbPFsq"]},
+    {id: "1950507009", name: "عدنان قاسم الخوالده", major: "اقتصاد مال واعمال", shelf: "226", codes: ["6AzyVcL", "TK0mvUT", "oRIOYE6", "8QwGt2k"]},
+    {id: "2100511109", name: "عز الدين وائل شحادة", major: "نظم معلومات مالية ومصرفية", shelf: "227", codes: ["1Q4Jlsg", "EiVqUZJ", "W6l8R5v", "PfowoV3"]},
+    {id: "2200511106", name: "عمر احمد حافظ النهيا", major: "نظم معلومات ماليه ومصرفيه", shelf: "228", codes: ["tAY4vxq", "LsD2hEd", "3OLL8Ne", "E4mGh3R"]},
+    {id: "2200502080", name: "عيسى معين عيسى النتشه", major: "إدارة الاعمال", shelf: "229", codes: ["yHtAd32", "jimvAK5", "6Dju3Tl", "XfFvOlu"]},
+    {id: "2200508117", name: "فرح سامر جميل محسن", major: "نظم المعلومات المحاسبية", shelf: "230", codes: ["OdaCrnW", "XkKWkFY", "WXfiNBO", "BzB9Eya"]},
+    {id: "2200502132", name: "فرح محمد باسم اللحام", major: "ادارة الاعمال", shelf: "231", codes: ["cImUx8a", "5uW1Hmb", "RaOUpoS", "4wtigyG"]},
+    {id: "2200508039", name: "ليمار جهاد ابو طوق", major: "نظم معلومات محاسبيه", shelf: "232", codes: ["Ltke0ct", "8sDUHMH", "vB4Riv5", "FwWmk86"]},
+    {id: "2200514220", name: "مشاعل محمد احمادي الشمري", major: "التسويق الرقمي", shelf: "233", codes: ["6ZzbooU", "inUbLGk", "hxTPYcy", "4OqXINd"]},
+    {id: "2200503053", name: "ميرا يوسف أبو حميدة", major: "تمويل و مصارف", shelf: "234", codes: ["MdQgP1b", "dShACyh", "JqESjnS", "ROatAQg"]},
+    {id: "2200503251", name: "نور حمد ناصر المزاودة", major: "تمويل ومصارف", shelf: "235", codes: ["QHrNMSi", "A15gGUN", "hshYgFm", "MmXq1Hm"]},
+    {id: "2200502056", name: "هبه عطالله عيد العليق", major: "إدراة اعمال", shelf: "236", codes: ["wTAskcJ", "F6nS7Ev", "paaQf6h", "1KQFj8f"]},
+    {id: "2200502199", name: "هبه عوده محمد درويش", major: "إدارة الأعمال", shelf: "237", codes: ["XGeUUg5", "qPoDsqD", "dg0l3c2", "sxZRuBV"]},
+    {id: "2300504003", name: "سالم محمد سالم المصطفى", major: "المحاسبة", shelf: "238", codes: ["hg2W4ca", "2iQPkvw", "5C9Nr4U", "fx0vlhz"]},
+    {id: "2200514057", name: "حسين حسام حسين الترك", major: "التسويق الرقمي", shelf: "239", codes: ["z9Dr1yS", "2EZAP4Z", "khiSUd8", "2kgA6LE"]},
+    {id: "2200502226", name: "حسن وليد النعيمات", major: "ادارة الاعمال", shelf: "240", codes: ["ZKRClNy", "XwNb3R4", "1U5iE6F", "h4ACceq"]},
+    {id: "2200502227", name: "سعد وليد النعيمات", major: "ادارة الاعمال", shelf: "241", codes: ["PuaT3RH", "XVKUKo9", "Q3vHHSS", "NgBQUpE"]},
+    {id: "2200503033", name: "عبدالله احمد محمد عريقات", major: "التمويل والمصارف", shelf: "242", codes: ["wQRPyj1", "0J5NdaP", "7kG2E2F", "3keWFup"]},
+    {id: "2200511190", name: "ضحى سيف يونس الراديدة", major: "نظم المعلومات الماليه المصرفيه", shelf: "243", codes: ["vrdGoJP", "yz0pfDC", "ZKCf2FC", "uhFVPbg"]},
+    {id: "2200511112", name: "عبير عبد الكريم علي مصلح", major: "نظم المعلومات ماليه ومصرفيه", shelf: "244", codes: ["zAcJJa0", "fYM9NOt", "4GJnPQD", "8vx0d0o"]},
+    {id: "2200509196", name: "رهف اياد جميل سعيد", major: "المحاسبه وقانون الأعمال", shelf: "245", codes: ["2DvJXNM", "ETQxTCh", "gWQoavw", "1O9ZsJH"]},
+    {id: "2200504012", name: "علي حسن المغربي", major: "المحاسبة", shelf: "246", codes: ["xSgc5kF", "i0TVUAg", "qNmmh72", "znD0YmT"]},
+    {id: "2200514041", name: "أيمن حمدالله يحيى العقرباوي", major: "تسويق الرقمي", shelf: "247", codes: ["vgWAc7O", "1RLhX5C", "DQL9Gi9", "FaHVdJ7"]},
+    {id: "2200514114", name: "رناد صالح الخزاعله", major: "التسويق الرقمي", shelf: "248", codes: ["B1LE7GX", "66lSLlU", "0igyQMM", "4uG4yAM"]},
+    {id: "2200502240", name: "رنيم صالح ابو شاويش", major: "ادارة اعمال", shelf: "249", codes: ["6SWprz9", "vsCZiiA", "MS4VGt1", "SJ3uTV7"]},
+    {id: "2200503027", name: "ميرا وائل", major: "تمويل ومصارف", shelf: "250", codes: ["JOnmnNT", "sRw6RiT", "P9lGISO", "uThWwJE"]},
+    {id: "2100509041", name: "فاطمة الزهراء رائد يوسف", major: "محاسبة وقانون الأعمال", shelf: "251", codes: ["LK8QTAR", "V51Is42", "BZaHgby", "jdQdmrW"]},
+    {id: "2200514076", name: "حلا ابوعبطه", major: "التسويق الرقمي", shelf: "252", codes: ["YksRqj1", "dSYsnWI", "cw0CgN3", "RVJ3oVP"]},
+    {id: "2200511099", name: "حنين زيد سليم الخزاعلة", major: "نظم المعلومات المالية والمصرفية", shelf: "253", codes: ["JypGYYZ", "SsSQd7y", "yA9YRu9", "JdaVqmN"]},
+    {id: "2200504122", name: "دانية عبد المعطي حبايب", major: "محاسبة", shelf: "254", codes: ["3X33C1o", "6OTTPxW", "LIVMmXU", "9msClRe"]},
+    {id: "2200514099", name: "قمر علي ضيف الله طحيمر", major: "التسويق الرقمي", shelf: "255", codes: ["l9lVGhy", "cBrJqik", "L2qavDT", "7jcj7uM"]},
+    {id: "2200509120", name: "تالا فراس المشاقبة", major: "محاسبه وقانون الأعمال", shelf: "256", codes: ["dX7ON1Q", "tFYKJwe", "YTuHo9l", "HeYGkAI"]},
+    {id: "2200502063", name: "لجين داود الصيفي", major: "إدارة الأعمال", shelf: "257", codes: ["Izfwo4n", "Qvvxsn8", "WNHEJ0W", "PahQwCp"]},
+    {id: "2100502229", name: "عبدالرحيم احمد هلال النعيمي", major: "اداره الأعمال", shelf: "258", codes: ["5PN6Np9", "cR4uy6Y", "8hyqIUs", "b6H0XxG"]},
+    {id: "2150504063", name: "هديل عبدالله عطالله علييان", major: "محاسبة", shelf: "259", codes: ["ZGCFcs5", "PmuGf8g", "k9XIIaO", "enQOXn3"]},
+    {id: "2100507165", name: "اسامه زيد محمد علاونه", major: "اقتصاد مال وأعمال", shelf: "260", codes: ["RB1gnI1", "S4VXBP0", "8eVRjbD", "Tvcfedl"]},
+    {id: "2200502239", name: "هاشم حسين محمد عوده", major: "ادارة اعمال", shelf: "261", codes: ["YqJeK0o", "6qAyCOz", "BubyRhI", "aPUNeWV"]},
+    {id: "2200511092", name: "اروى خليل طاهر القماز", major: "نضم معلومات مالية ومصرفية", shelf: "262", codes: ["LcS2ew7", "GgsYRtM", "fsW7Cyz", "0QbEkIo"]},
+    {id: "2100503126", name: "هديل فيصل محمد الحقيل", major: "التمويل والمصارف", shelf: "263", codes: ["iVzYZ2I", "s9OjtR4", "69Y3UPx", "98aJ3Jj"]},
+    {id: "2200509181", name: "محمود أيمن محمود علي", major: "محاسبة وقانون الأعمال", shelf: "264", codes: ["hcaKMzI", "J8ftnVV", "5UwnA5P", "2GjkloN"]},
+    {id: "2200514210", name: "رانيا الزواهرة", major: "التسويق الرقمي", shelf: "265", codes: ["1qmhlQZ", "K2d2W7J", "DPJesQe", "qgmULF8"]},
+    {id: "2250504015", name: "مهند اكرم احمد صبيح", major: "محاسبه", shelf: "266", codes: ["vwiQPpg", "sNe5muF", "CvNQtSL", "jKKxZu9"]},
+    {id: "2150504059", name: "يزن عماد محمود المومني", major: "محاسبه", shelf: "267", codes: ["BkaupYo", "TVPBr1x", "iRUv4ED", "CwXtFJg"]},
+    {id: "2200503239", name: "سيف الفاعوري", major: "التمويل و المصارف", shelf: "268", codes: ["lPMf1r2", "0i5ImqU", "4OeUe5b", "2GOb0LL"]},
+    {id: "2200509173", name: "محمد وائل احمد عزازي", major: "محاسبة وقانون الاعمال", shelf: "269", codes: ["zXLn6cJ", "qI5IEPX", "jxzo5XL", "U2siDGG"]},
+    {id: "2100509059", name: "صهيب احمد عواد المشاقبه", major: "محاسبة وقانون اعمال", shelf: "270", codes: ["fzxGaQp", "29ZNRkW", "GiCklK8", "KQ39jVU"]},
+    {id: "2200514222", name: "ندى احمد معيوف القور", major: "التسويق الرقمي", shelf: "271", codes: ["E8wcoWF", "oeqxocQ", "nH6YxyE", "6D4ccPu"]},
+    {id: "2200508169", name: "احمد محمد احمد المومني", major: "نظم معلومات محاسبية", shelf: "272", codes: ["gT9HO1r", "1VqLIKl", "yPyxLP5", "1eHqy6o"]},
+    {id: "2200514154", name: "ميساء يوسف ابو نفيسة", major: "التسويق الرقمي", shelf: "273", codes: ["Hzw03wF", "YE4MaG4", "iCkoeGP", "rnjlkxM"]},
+    {id: "2200514095", name: "عيسى محمد الديك", major: "التسويق الرقمي", shelf: "274", codes: ["T0hQoAZ", "vUhEREE", "nLkP1Ab", "pciKLki"]},
+    {id: "2200514081", name: "سيف الشرمان", major: "التسويق الرقمي", shelf: "275", codes: ["OGc5Kjd", "kq7lH9z", "MKOb4UU", "Q0s8fnC"]},
+    {id: "2200502184", name: "رشا حسين حسن عباس", major: "ادارة اعمال", shelf: "276", codes: ["ME3Eko1", "AMjYL0X", "lNQGqkU", "Rv7DMLe"]},
+    {id: "2200514035", name: "عبد الرحمن كمال خير الدين", major: "التسويق الرقمي", shelf: "277", codes: ["oyyigbm", "H36GRA0", "jMglE5N", "Mc4YIGW"]},
+    {id: "215004101", name: "سيف منصور علي الشوملي", major: "المحاسبة", shelf: "278", codes: ["hfEQi5M", "I0a58XR", "PBHAx3c", "SHBo8ZE"]},
+    {id: "2350504017", name: "عبدالمجيد ماجد عوض ارحيل", major: "المحاسبه", shelf: "279", codes: ["YXywLZV", "6W1SKgB", "iqEXo62", "fsM4IAq"]},
+    {id: "2300511007", name: "محمد سهيل خالد غنيم", major: "نظم المعلومات المالية والمصرفية", shelf: "280", codes: ["maTVYaK", "HhHayPn", "SZuAxgj", "BPLqq2I"]},
+    {id: "2200514120", name: "حمزة علي الجالودي", major: "تسويق رقمي", shelf: "281", codes: ["BKxNrRz", "WnAJYJE", "lxJJEqt", "KwXTzVi"]},
+    {id: "2200508110", name: "محمد معتصم الشيخ صالح", major: "نظم المعلومات المحاسبية", shelf: "282", codes: ["23QhVoC", "YS8kgnG", "zYvZJNS", "RTdky9O"]}
+];
 
-        const summitDate = new Date("May 10, 2026 10:00:00").getTime(); 
-        const countdownFunction = setInterval(function() {
-            const now = new Date().getTime(); const distance = summitDate - now;
-            if (distance < 0) {
-                clearInterval(countdownFunction);
-                document.getElementById("days").innerText = "00"; document.getElementById("hours").innerText = "00";
-                document.getElementById("minutes").innerText = "00"; document.getElementById("seconds").innerText = "00";
-                return;
-            }
-            document.getElementById("days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-            document.getElementById("hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-            document.getElementById("minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-            document.getElementById("seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
-        }, 1000);
-
-        const myDataString = `الاسم,التخصص,الرقم الجامعي,الهاتف
-عائشة سعود محمد العياش,التسويق الرقمي,2200514122,775828571
-سيرينا اسامة سلامة,تسويق رقمي,2200514172,788478336
-ديما سلطان كامل الخزاعله,محاسبه وقانون الأعمال,2200509075,792931227
-بشرى ايمن عبدالحميد خليل,محاسبة,2200504046,791592708
-سيلينا سعيد محمد وهدان,نظم معلومات محاسبية,2200508008,785247057
-مادلين محمد عفيف الخطيب,نظم المعلومات المالية والمصرفية,2200511091,782856822
-عبد الرحمن كمال رمضان خير الدين,التسويق الرقمي,2200514035,797515808
-مرح كامل اسعد بدران,تمويل ومصارف,2200503200,780239983
-رهف أبراهيم سعود السعادي,التسويق الرقمي,2200514214,776744506
-براءة جلال محمد ياسر التميمي,ادارة اعمال,2200502134,782129531
-راما محمد حسن علاونه,محاسبه,2200504217,790119367
-ديانا بشير قاسم عساف,التمويل والمصارف,2200503219,781134718
-صفاء ناصر عبدالهادي ابو خضير,نظم المعلومات المحاسبية,2200508227,787002174
-اسيل حسين لافي السرحان,المحاسبة,2150504020,777502211
-الاء علي المشاني,نظم المعلومات المحاسبية,2200508082,772610432
-هاله سعيد كامل فليفل,تمويل ومصارف،,2100511246,796146980
-ايات محمد رباح كعوش,التمويل و المصارف,2200503045,781135704
-لارا خليل محمود حويله,المحاسبة,2200504148,798039258
-Rania Almashaqbeh,محاسبه,2250504037,770718452
-مرام محمد عيسى اسليم,اقتصاد مال واعمال,2200507025,795920255
-رهف علي محمود قنديل,إدارة الأعمال,2250502021,788125340
-هاشم رجائي تفاحة,تسويق,2200514016,791118004
-شهد سعد عبداللطيف الهندي,نظم المعلومات المحاسبية,2200508124,798065212
-مروه عاطف محمد ابو صفيه,إدارة الأعمال,2200502014,782416133
-دعاء نايف محمد مشاقبه,المحاسبة,2100504098,776285095
-نور محمد لطفي دريدي,إدارة الأعمال,2200502111,782755493
-سكينه منصور حامد العليمات,ادارة اعمال,2250502015,772597443
-عبدالرزاق حابس العون,نظم معلومات محاسبيه,2200508077,790259836
-نور بسام فتح الله العقرباوي,ادارة اعمال,2200502137,786484777
-وائل قبلان عبده حرب,تسويق رقمي,2350514001,792571552
-ديما نضال سنان سنان,تمويل ومصارف,2200503240,788682454
-فداء خالد مصطفى هماش,إدارة الأعمال,2200502055,795763279
-منه الله مجدي عيسى ابو شلنفح,التسويق الرقمي,2200514209,782044147
-عبد الاله ثروت حرب مصطفى,محاسبة وقانون اعمال,2200509027,790620377
-شهد بلال الشطناوي,إدارة الأعمال - التسويق الرقمي,2300514002,788462697
-هناء كامل محمد نصار,إدارة اعمال,2200502185,788760161
-مسك يحيى قاسم العوسج,التسويق الرقمي,2200514046,797195173
-احمد معتصم عبدالرحمن البيك,محاسبة,2200504034,791424395
-رهف احمد عقله الزبن,التمويل والمصارف,2200503002,782415240
-ساره جهاد كمال خليل,اقتصاديات المال والاعمال,2200507015,797781696
-وعد رائد علي الخطيب,إدارة الأعمال,2200502206,785289664
-روعه خليل اكرم غيظان,محاسبة,2200504023,785767077
-سلسبيل عبدالحميد احمد الربعي,التسويق الرقمي,2200514233,781992721
-حسن ناصر حسن جرادت,محاسبه وقانون الأعمال,2100509002,776098147
-خديجة فارس عبدالهادي النجار,المحاسبة وقانون الأعمال,2200509003,791327966
-نور الدين محمود جودت ايوب,نظم المعلومات المالية والمصرفيه,2200511060,786017462
-رند حمد سالم البريحي,التمويل والمصارف,2200503175,798294041
-جيلان علي محمد بصبوص,التسويق الرقمي,2200514115,770790834
-لارا عماد عبد الكريم المومني,تسويق رقمي,2200514105,770430068
-البتول عبدالباسط احمد الصبيحات,نظم المعلومات المحاسبية,2200508090,770458319
-تسنيم سلامه محمود حناوي,محاسبة وقانون اعمال,2200509118,780256844
-حنين عصام داوود الصرفندي,نظم المعلومات المحاسبية,2200508163,788054202
-رهف نائل شحروج,نظم معلومات محاسبيه,2200508223,781604062
-ريناد ابراهيم احمد حمد,محاسبة,2200504115,788643244
-محمد جهاد ابراهيم السعدي,تسويق رقمي,2200514136,787035718
-ايه مروان المصري,محاسبة,2200504189,797296551
-فرح دحام نويديس الشرفات,محاسبه,2200504180,778646037
-ملك اشرف حسين شحاده,المحاسبة,2200504280,779053438
-ارجوان جمال عمر العاصي,إدارة الأعمال,2200502077,782145906
-أسيل نمر احمد عثمان,محاسبه وقانون الاعمال,2200509030,780154458
-سمر باسم محمد حكمت الحوري,محاسبة وقانون الاعمال,2200509014,786114955
-امينة حسين المزايدة,تمويل ومصارف,2100503203,795285807
-ولاء جواد عبدالله,محاسبة وقانون اعمال,2200509047,788713644
-المناهل سعود عايد الشويعر,التمويل والمصارف,2100503248,797895514
-عبير محمد حسن أبوزينة,إدارة الأعمال,2200502082,775571767
-سندس يوسف عبدالله حسن,نظم المعلومات الماليه والمصرفيه,2200511020,797534361
-احمد محمد مصطفى احمد,تسويق رقمي,2200514085,780286715
-منار ابراهيم عبدالله خلاوي,المحاسبة,2200504132,781290799
-رناد زياد محمد الخوالدة,التسويق الرقمي,2200514112,777584709
-لارا رامز صدقي محمد,نظم المعلومات المحاسبية,2200508151,780279988
-ضياء محمد مصطفى السالم,نظم معلومات مالية ومصرفية,2200511186,782183683
-سيف الدين محمد أبراهيم أبو الهيجاء,التمويل والمصارف,2100503034,786919136
-سديل عبد الرحيم محمود اسعد,التمويل والمصارف,2200503212,782969788
-امل موفق خلف هلال,إدارة الأعمال,2200502086,772316581
-رانيا مصطفى يوسف ابوالرب,التسويق الرقمي,2200514173,796708018
-زينه ايمن احمد حماده,تمويل ومصارف,2200503052,792907806
-سبأ فايز سلامه,التسويق الرقمي,2200514116,790275007
-تسنيم رامي عزمي القيسي,نظم معلومات مالية ومصرفية,2200511165,790315826
-فاطمة محمد حسن ابو فرحان,التمويل والمصارف,2200503101,780915960
-يقين علي عشوي العون,التسويق الرقمي,2200514124,772427611
-شهد مصطفى كمال خريشي,نظم المعلومات المحاسبية,2200508197,778646013
-شهد احمد موسى العمري,تسويق رقمي,2300514120,782716955
-ماجده صلاح حسان الهديب,تسويق رقمي,2200514221,790699865
-رؤى سهيل احمد قطيش,تسويق رقمي,2200514087,791943454
-ايه صادق حراحشة,تمويل ومصارف,2200503166,775635623
-محمد حماد محمود الشرفات,نظم معلومات مالية ومصرفية,2200511065,779627067
-رامي زياد علي ابو صلاح,المحاسبة,2200504038,782447356
-بتول خالد محمود النعيمي,المحاسبة وقانون الاعمال,2200509154,781127970
-ضيف الله محمد ضيف الله الزعبي,التسويق الرقمي,2200514232,799517036
-فرحي حسين نايف البريحي,التمويل والمصارف,2100503140,791585180
-ساجده علي خليفه الشرعه,محاسبه,2200504093,779995671
-لميس ابراهيم موسى العسعس,المحاسبة وقانون الأعمال,2200509015,797496029
-ميار أحمد عواد الهواري,تسويق رقمي,2200514117,792053193
-فاطمة ناصر صب لبن,محاسبة وقانون اعمال,2200509104,780035091
-سماح وسام منصور كسبه,نظم المعلومات الماليه والمصرفيه,2200511019,795042625
-احمد هيثم محمد ابو شادوف,محاسبه,2150504064,780026184
-باسل محمد فلاح مخادمه,التسويق الرقمي,2200514090,782584938
-رغد مفلح عيد سرحان,محاسبه وقانون أعمال,2200509081,775459952
-سيف الاسلام سامر المدفعي,المحاسبة وقانون الاعمال,2100509012,793370727
-بيان عماد كحيل,المحاسبة وقانون الاعمال,2200509192,782958468
-ايهاب محمد علي,نظم المعلومات المحاسبية,2200508026,781309160
-نورا أسامة سعدات الخطيب,محاسبة وقانون الأعمال,2200509121,797406235
-مروى اللاحم,محاسبه,2200504082,772710194
-حنين محمد شريم,محاسبه,2200504200,785973868
-رؤى وليد محمد عشا,ادارة اعمال,2200502060,776375664
-شهد جهاد عبد الجعبري,محاسبة,2200504073,788795776
-رؤى احمد عطية ابو زاهر,نظم المعلومات المالية والمصرفية,2200511113,795846438
-اية سائد مفيد القاضي,ادارة الاعمال,2200502107,789616123
-ليث فتحي احمد شواقفه,تمويل ومصارف,2200503107,796914089
-دعاء محمد فضل الماضي,محاسبه,2200504088,779928178
-دانية حبايب,محاسبة,2220050412,78307579
-راما موفق هليل السليم,نظم المعلومات المحاسبية,2200508089,799313377
-جهاد حسام خضر,المحاسبة,2200504136,770495048
-فرح عامر راشد,تمويل ومصارف,2200503024,790484605
-لين محمد سعيد مشّه,إدارة أعمال,2200502150,785557178
-سيرين هاني عبدالله عماره,إدارة أعمال,2200502052,795984810
-عبد الله محمد عطا موسى,المحاسبه وقانون الاعمال,2200509043,781759757
-لين امجد ابوريا,محاسبة وقانون الاعمال,2200509051,798365357
-شهد انور جروان,التمويل والمصارف,2200503010,798878435
-روان وديع حسين عبدالله,المحاسبة,2200504228,788117852
-رؤى محمود عبدالعال قعقور,محاسبة,2200504152,785295948
-زينه سهيل دحبور,المحاسبة,2200504032,786051581
-ميس احمد خليف بني ياسين,المحاسبة وقانون الاعمال,2100509184,785126644
-مرح مراد عساف,نظم معلومات ماليه,2200511145,781710633
-أية علي عبد الله ابو صعيليك,التمويل والمصارف,2200503080,778297171
-عمر يحيى يوسف جرار,المحاسبة,2350504015,799219243
-طارق رامي طلال العش,محاسبة,2200504026,790812496
-قصي وائل نبيل الكلباني,التمويل و المصارف,2200503152,791577868
-ليان ابو منشار,تمويل و مصارف,2200503021,798809154
-محمد مصباح سليمان دراغمه,نظم معلومات مالية ومصرفية,2200511137,788674347
-ايات حمّاد,تسويق رقمي,2250514001,798967212
-احمد محمد يوسف رشيد,محاسبه وقانون الاعمال,2200509025,791027941
-ليث بلال مصطفى عيسى,محاسبه وقانون الاعمال,2200509088,786075655
-جنة علي احمد الجرايدة,تخصص المحاسبة,2100504102,797464530
-رهف احمد فايد حمدان,التمويل والمصارف,2200503184,798059560
-احمد اسماعيل مطر,اقتصاد مال و اعمال,2200507004,782033950
-عمر مامون ناجي عوده,محاسبة,2200504013,796661845
-حسين عمر حسين فارس,تسويق رقمي,2300514076,788834852
-شهد جهاد وحيد النعيمي,محاسبه وقانون اعمال,2200509077,791459717
-نيرمين حكمت صالح,ادارة الاعمال,2200502205,780729589
-ملاك امجد طه فراج,محاسبة,2200504233,788342960
-سجى إبراهيم رسمي,تمويل ومصارف,2200503199,796555897
-كنده محمد أصلان,التسويق الرقمي,2200514027,791870470
-لجين شادي حسن دوله,نظم المعلومات المالية و المصرفية,2200511198,782530054
-نورا ابراهيم اثفيل الجبور,Digital Marketing,2200514215,796626923
-لمى مراد بني احمد,تسويق رقمي,2200514100,795262578
-احمد صبحي الطباخي,المحاسبة,2200504010,798053963
-غفران ابراهيم صبيح الشرفات,التسويق الرقمي,2200514238,776642147
-بتول باسم علي البداوي,إدارة الأعمال,2200502016,797220571
-ايمان إبراهيم محمد البدوي,محاسبة,2200504216,783233925
-آلاء محمد خليل كناني,التمويل والمصارف,2200503046,772248121
-روان رزق سالم عليمات,تسويق رقمي,2200514203,778913750
-دنيا نضال ابو صبح,المحاسبه,2200504191,770342364
-طارق محسن محمد المحيميد,تسويق رقمي,2200514068,787033128
-اسراء إبراهيم محمد شريتح,التسويق الرقمي,2200514243,776842840
-حلا نضال محمد سند,محاسبة وقانون الاعمال,2200509018,796850453
-شهد عوض مناع خضر,نظم معلومات ماليه ومصرفيه,2100511283,787091848
-رزان كمال قاسم ابو غانم,تمويل و مصارف,2300503111,786123373
-وحيده علي اسعود الخوالده,محاسبةوقانون الأعمال,2200509074,778990431
-إسراء عبدالله مشوح الشرفات,التسويق الرقمي,2200514121,786697711
-نورس عبدالرحمن عليمات,تسويق رقمي,2200514244,778990457
-مرعي الخزاعله,التسويق الرقمي,2200514237,779725539
-ليث احمد محمد مشاقبه,محاسبه وقانون أعمال,2200509004,777435838
-نغم سهيل حمام,نظم معلومات محاسبيه,2200508234,788604091
-خالد محمد ظاهر الحوامدة,محاسبة وقانون أعمال,2200509006,795119250
-سارة أمير الأعرج,التمويل و المصارف,2200503141,797569395
-يوسف غسان ابو عمر,نظم معلومات مالية ومصرفية,2200511130,791459351
-ميرا اياد ابو طوق,نظم المعلومات المحاسبية,2200508043,0782182443
-نور محمد علي الزبن,ادارة اعمال,2300502110,797340434
-ريماس النجار,تسويق رقمي,2200514029,780879438
-بشار شاكر محمود اشنينة,التمويل والمصارف,2150503009,797222663
-بلقيس اشرف ضامن ابو صرة,محاسبة و قانون الاعمال,2200509122,788212608
-عبدالرحمن سعود عبدالله ابو صلاح,نظم المعلومات المحاسبية,2200508055,797768929
-هاني عامر محمد حداد,التسويق الرقمي,2200514070,791974768
-تالا وليد عادل,محاسبه,2200504187,797894843
-ابتسام عبدالله فالح السرحان,اقتصاد مال وأعمال,2100507049,779357839
-محمد علاء الطويل,المحاسبة,2150504070,0799535689
-معتز جابر محمد الهزايمة,تسويق رقمي,2200514067,781821310
-مجدولين علي سليم ارشيد,المحاسبة,2200504209,775476169
-طيف ياسر صقر المخاريز,التسويق الرقمي,2200514123,775638658
-زينه وائل ابو لبن,تمويل ومصارف,2200503140,795168521
-أية محمد عواد الحموري,إدارة الأعمال,2200502076,782915963
-أمين يحيى زكريا الدويك,التسويق الرقمي,2200514108,798388925
-أمواج قاسم محمد المزاودة,نظم معلومات محاسبيه,2100508096,798340391
-ميرا وليد توفيق باكير,المُحاسبة وقانون الأعمال,2200509191,790131055
-ياسمين مازن وليد الخليلي,محاسبه,2200504074,789495595
-حازم محمد حسين مسعد,نظم معلومات محاسبية,2150508005,780686890
-عمر عصام فوزي شريدة,محاسبة,2100504262,798688947
-رندة منير طوابين,تمويل ومصارف,2200503044,796017154
-شهد رائد مسلم أبو سيف,التسويق الرقمي,2200514052,791592649
-رنين ماجد يونس بدر,تمويل ومصارف,2200503023,789902354
-زين مصطفى محمد امين النعنيش,تمويل ومصارف,2200503011,781671034
-عصام مدالله عواد المشاقبة,نظم معلومات ماليه ومصرفية,2100511079,776259866
-خالد عماد رجا الصدقه,نظم معلومات مالية ومصرفية,2100511319,785873661
-شذى عصام شاهين,محاسبه وقانون أعمال,2200509135,780751116
-عبيدة لؤي الفارس,نظم معلومات محاسبيه,2200508037,790892138
-سليمان خالد رجا الهدار,نظم المعلومات المحاسبيه,2000508041,781820742
-نغم رمزي شويكي,محاسبة وقانون اعمال,2200509055,780651114
-رغد علي المزاودة,محاسبة,2200504091,776242816
-دارين نائل الجيلاني,التمويل والمصارف,2200503198,776533339
-محمد جعفر القضاة,تسويق رقمي,2300514003,798590906
-ديما عامر المفالحه,محاسبة وقانون الاعمال,2200509095,789009112
-سيرين ايوب جبر,محاسبة وقانون الأعمال,2200509156,791298188
-لانا سائد قطعيين,محاسبة,2200504203,789991384
-عبيدة تيسير ابراهيم الشملتي,ادارة الاعمال,2100502017,0788608901
-رهف امجد الجبارين,نظم معلومات محاسبية,2200508088,0772559383
-نغم محمد العموش,نضم معلومات محاسبية,2200508154,0789947269
-أريام فراس نصر الزبيد,نظم معلومات ماليه,2200511181,0777854572
-أحمد كمال الخزعلي,التسويق الرقمي,2200514093,0792931516
-الطاف سامي ابو دلبوح,التسويق الرقمي,2200514113,0772823087
-بندري عطاالله كريم العنزي,التمويل ومصارف,2000503090,0775742722
-بهاء الدين فهمي أحمد أبوجابر,نظم معلومات مالية ومصرفية,2200511104,0786563339
-تسنيم فراس الخطيب,نظم المعلومات المالية والمصرفية,2200511110,0780719384
-حمزة غازي خالد الشبيلات,المحاسبة,2200504011,0776996981
-دانا إياد حسن عبداللطيف,المُحاسبه,2200504214,0787129105
-ديما خالد أبو زهره,اداره اعمال,2200502067,0798253204
-رغد محمد ابراهيم الشني,نظم معلومات المحاسبيه,2200508140,0780142098
-رغد هاني ثلجي العظامات,التمويل والمصارف,2200503245,0770197431
-رنيم منصور عقيل الشرفات,المحاسبة,2200504087,0779469107
-روعه اللصاصمة,تمويل ومصارف,2200503093,0775876462
-سجى متروك عواد العدواني,نظم المعلومات المالية والمصرفية,2200511143,0779713421
-سرينا مراد ابو ليل,إدارة الاعمال,2200502145,0785283922
-سلطان حاتم سلطان,التسويق الرقمي,2300514005,0770127169
-سيدرا كمال سعدي ابو هندي,نظم المعلومات المحاسبية,2200508212,0780910627
-ضياء محمد ابراهيم عليان,تسويق رقمي,2200514034,0795521640
-عبد الرحم منذر يعقوب,تسويق رقمي,2200514073,0789188363
-عبدالله احمد الدهيدي,نظم معلومات مالية ومصرفية,2100511320,0781876998
-عدنان قاسم الخوالده,اقتصاد مال واعمال,1950507009,0772448436
-عز الدين وائل شحادة,نظم معلومات مالية ومصرفية,2100511109,0776278271
-عمر احمد حافظ النهيا,نظم معلومات ماليه ومصرفيه,2200511106,079026799
-عيسى معين عيسى النتشه,إدارة الاعمال,2200502080,0792952555
-فرح سامر جميل محسن,نظم المعلومات المحاسبية,2200508117,0780035029
-فرح محمد باسم اللحام,ادارة الاعمال,2200502132,0788274325
-ليمار جهاد ابو طوق,نظم معلومات محاسبيه,2200508039,0796694382
-مشاعل محمد احمادي الشمري,التسويق الرقمي,2200514220,0778185970
-ميرا يوسف أبو حميدة,تمويل و مصارف,2200503053,0799395261
-نور حمد ناصر المزاودة,تمويل ومصارف,2200503251,0775540571
-هبه عطالله عيد العليق,إدراة اعمال,2200502056,0780767826
-هبه عوده محمد درويش,إدارة الأعمال,2200502199,0799470802
-سالم محمد سالم المصطفى,المحاسبة,2300504003,0772433952
-حسين حسام حسين الترك,التسويق الرقمي,2200514057,795002015
-حسن وليد النعيمات,ادارة الاعمال,2200502226,790887013
-سعد وليد النعيمات,ادارة الاعمال,2200502227,795663128
-عبدالله احمد محمد عريقات,التمويل والمصارف,2200503033,787442785
-ضحى سيف يونس الراديدة,نظم المعلومات الماليه المصرفيه,2200511190,781929632
-عبير عبد الكريم علي مصلح,نظم المعلومات ماليه ومصرفيه,2200511112,962785292465
-رهف اياد جميل سعيد,المحاسبه وقانون الأعمال,2200509196,790026908
-علي حسن المغربي,المحاسبة,2200504012,786612032
-أيمن حمدالله يحيى العقرباوي,التسويق الرقمي,2200514041,798359101
-رناد صالح الخزاعله,التسويق الرقمي,2200514114,775618618
-رنيم صالح ابو شاويش,ادارة اعمال,2200502240,788276634
-ميرا وائل,تمويل ومصارف,2200503027,792546381
-فاطمة الزهراء رائد يوسف,محاسبة وقانون الأعمال,2100509041,791875812
-حلا ابوعبطه,التسويق الرقمي,2200514076,781494384
-حنين زيد سليم الخزاعلة,نظم المعلومات المالية والمصرفية,2200511099,772421539
-دانية عبد المعطي حبايب,محاسبة,2200504122,788307579
-قمر علي ضيف الله طحيمر,التسويق الرقمي,2200514099,772585413
-تالا فراس المشاقبة,محاسبه وقانون الأعمال,2200509120,780570122
-لجين داود الصيفي,إدارة الأعمال,2200502063,0792710122
-عبدالرحيم احمد هلال النعيمي,اداره الأعمال,2100502229,777227687
-هديل عبدالله عطالله علييان,محاسبة,2150504063,776490221
-اسامه زيد محمد علاونه,اقتصاد مال وأعمال,2100507165,781571633
-هاشم حسين محمد عوده,ادارة اعمال,2200502239,795981615`;
-
-        let db = [];
-        const MY_PHONE = "962772536229";
-
-        Papa.parse(myDataString, { 
-            header: true, 
-            complete: function(res) { 
-                let rawData = res.data;
-                let uniqueIds = new Set();
-                db = [];
-                
-                rawData.forEach(row => {
-                    let stId = row["الرقم الجامعي"] ? String(row["الرقم الجامعي"]).trim() : null;
-                    if (stId && !uniqueIds.has(stId)) {
-                        uniqueIds.add(stId);
-                        db.push(row);
-                    }
-                });
-
-                const counterElement = document.getElementById('totalStudents');
-                if (counterElement) {
-                    counterElement.innerText = db.length;
-                }
-            }
-        });
-
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new AudioContext();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            
-            if (type === 'click') {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'success') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
-                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-            } else if (type === 'error') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
-        }
-
-        function getInitials(name) {
-            if(!name) return "?";
-            let parts = name.trim().split(' ');
-            if(parts.length >= 2) return parts[0][0] + '.' + parts[parts.length-1][0];
-            return parts[0][0];
-        }
-
-        function generateBadgeDataURL(name, major) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1080; canvas.height = 1920; 
-            const ctx = canvas.getContext('2d');
-
-            const grad = ctx.createLinearGradient(0,0,0,1920);
-            grad.addColorStop(0, '#0f172a'); grad.addColorStop(1, '#020617');
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
-
-            ctx.fillStyle = 'rgba(212, 175, 55, 0.1)';
-            ctx.beginPath(); ctx.arc(0, 0, 600, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(1080, 1920, 800, 0, Math.PI*2); ctx.fill();
-
-            ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 15; ctx.strokeRect(50, 50, 980, 1820);
-
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            
-            ctx.fillStyle = '#d4af37'; ctx.font = 'bold 90px Arial, sans-serif';
-            ctx.fillText('قمة الأعمال 2026', 540, 450);
-
-            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 70px Arial, sans-serif';
-            ctx.fillText('أنا فخور بمشاركتي!', 540, 650);
-
-            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 110px Arial, sans-serif';
-            ctx.fillText(name, 540, 1050);
-
-            ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 60px Arial, sans-serif';
-            ctx.fillText(major, 540, 1200);
-
-            ctx.fillStyle = '#d4af37'; ctx.font = 'bold 50px Arial, sans-serif';
-            ctx.fillText('🚀 أراك هناك!', 540, 1750);
-
-            return canvas.toDataURL('image/png');
-        }
-
-        function triggerConfetti() {
-            var duration = 3 * 1000; var end = Date.now() + duration;
-            (function frame() {
-                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#d4af37', '#1e293b', '#38bdf8'] });
-                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d4af37', '#1e293b', '#38bdf8'] });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
-        }
-
-        function runSearch() {
-            playSound('click'); 
-            const idVal = document.getElementById('idInput').value.trim();
-            const phoneVal = document.getElementById('phoneInput').value.trim();
-            const resBox = document.getElementById('result-box');
-            const alertBox = document.getElementById('custom-alert');
-            const btn = document.getElementById('searchBtn');
-
-            resBox.style.display = "none"; alertBox.style.display = "none";
-
-            if (!idVal && !phoneVal) { alertBox.style.display = "block"; return; }
-
-            const originalBtnText = `<i class="fa-solid fa-magnifying-glass"></i> استعلام الآن <div class="progress-bar" id="btnProgress"></div>`;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> جاري التدقيق... <div class="progress-bar" id="btnProgress"></div>`;
-            btn.disabled = true;
-            
-            setTimeout(() => { document.getElementById('btnProgress').style.width = '100%'; }, 50);
-
+        window.onload = () => {
             setTimeout(() => {
-                let cleanPhoneInput = phoneVal.replace(/^0+/, '');
-                let match = db.find(s => {
-                    let sID = s["الرقم الجامعي"] ? String(s["الرقم الجامعي"]).trim() : "";
-                    let sPhone = s["الهاتف"] ? String(s["الهاتف"]).trim() : "";
-                    let cleanFilePhone = sPhone.replace(/^0+/, '');
-                    return (idVal !== "" && sID === idVal) || (cleanPhoneInput !== "" && cleanFilePhone === cleanPhoneInput);
+                document.getElementById('intro-overlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('intro-overlay').style.visibility = 'hidden';
+                    const main = document.getElementById('main-content');
+                    main.style.display = 'block';
+                    setTimeout(() => main.style.opacity = '1', 50);
+                }, 1000);
+            }, 5000);
+        };
+
+        function handleSearch() {
+            const input = document.getElementById('stuId').value.trim();
+            const result = document.getElementById('result-container');
+            const match = graduates.find(g => g.id === input);
+
+            if (match) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                document.getElementById('displayName').innerText = match.name;
+                document.getElementById('displayMajor').innerText = match.major;
+                document.getElementById('displayShelf').innerText = match.shelf;
+                document.getElementById('waLink').href = `https://wa.me/962772536229?text=مرحبا معاذ، أنا الخريج ${match.name} واحتاج مساعدة.`;
+
+                // بناء التذاكر برمجياً
+                const list = document.getElementById('tickets-list');
+                list.innerHTML = '';
+                match.codes.forEach((code, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'ticket-stub';
+                    div.innerHTML = `
+                        <div class="stub-header">TICKET ${i+1} OF 4</div>
+                        <div class="stub-body">
+                            <div class="stub-info">
+                                <b>EVENT:</b> Business Summit 2026<br>
+                                <b>TYPE:</b> Guest Entry<br>
+                                <div style="margin-top:10px; font-size:18px; color:#d4af37; font-family:monospace;">CODE: ${code}</div>
+                            </div>
+                            <div class="stub-qr" id="qr-${i}"></div>
+                        </div>
+                        <div class="stub-barcode"><svg id="bc-${i}"></svg></div>
+                        <div class="stub-footer">Generated via Graduate Portal - Developed by Moath Al-Khawalda</div>
+                    `;
+                    list.appendChild(div);
+
+                    // توليد QR و Barcode لحظياً
+                    new QRCode(document.getElementById(`qr-${i}`), { text: code, width: 90, height: 90 });
+                    JsBarcode(`#bc-${i}`, code, { format: "CODE128", height: 40, displayValue: false });
                 });
 
-                resBox.style.display = "block";
+                result.style.display = 'block';
+            } else {
+                alert("الرقم الجامعي غير موجود، يرجى التأكد والمحاولة مرة أخرى.");
+            }
+        }
 
-                if (match) {
-                    playSound('success'); 
-                    triggerConfetti();
-                    resBox.className = "success-box";
-                    
-                    const studentName = match["الاسم"] || "غير محدد";
-                    const initials = getInitials(studentName);
-                    const badgeDataUrl = generateBadgeDataURL(studentName, match["التخصص"] || "تخصص غير محدد");
-                    
-                    const eventTitle = encodeURIComponent("قمة الأعمال 2026 - حضور الفعالية");
-                    const eventDetails = encodeURIComponent("تهانينا! أنت مسجل رسمياً في قمة الأعمال 2026.");
-                    const eventLocation = encodeURIComponent("عمان، الأردن");
-                    const googleCalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=20260510T070000Z/20260510T140000Z&details=${eventDetails}&location=${eventLocation}`;
+        async function downloadImage() {
+            const element = document.getElementById('ticket-render-area');
+            const canvas = await html2canvas(element, { scale: 2 });
+            const link = document.createElement('a');
+            link.download = `تذاكر_المرافقين_${document.getElementById('stuId').value}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
 
-                    resBox.innerHTML = `
-                        <h3 style="margin-top:0; color: #166534;"><i class="fa-solid fa-face-smile-beam"></i> تم تأكيد حضورك بنجاح!</h3>
-                        
-                        <div class="user-profile">
-                            <div class="avatar">${initials}</div>
-                            <div style="font-size: 15px; line-height: 1.8;">
-                                <strong>الاسم:</strong> <span style="color:var(--primary-dark)">${studentName}</span><br>
-                                <strong>التخصص:</strong> <span style="color:var(--primary-dark)">${match["التخصص"] || "غير محدد"}</span>
-                            </div>
-                        </div>
-
-                        <div class="action-buttons">
-                            <a href="${badgeDataUrl}" download="Badge_Business_Summit_2026.png" class="btn-action btn-download">
-                                <i class="fa-solid fa-image"></i> تحميل صورتي
-                            </a>
-                            <a href="${googleCalLink}" target="_blank" class="btn-action btn-calendar">
-                                <i class="fa-regular fa-calendar-check"></i> احجز في التقويم
-                            </a>
-                        </div>
-                        
-                        <hr style="border: 0; border-top: 1px solid #bbf7d0; margin: 20px 0;">
-                        <a href="https://wa.me/${MY_PHONE}" class="wa-btn" target="_blank">
-                            <i class="fa-brands fa-whatsapp" style="font-size:1.3rem;"></i> تواصل للدعم الفني
-                        </a>
-                    `;
-
-                } else {
-                    playSound('error'); 
-                    let msg = encodeURIComponent("مرحباً معاذ، بياناتي غير مدرجة في نظام قمة الأعمال. \nالاسم: \nالرقم الجامعي: \nالهاتف: \nالتخصص: \n(مرفق صورة الحوالة)");
-                    resBox.className = "error-box";
-                    resBox.innerHTML = `
-                        <h3 style="margin-top:0; color: #991b1b;"><i class="fa-solid fa-circle-xmark"></i> عذراً، البيانات غير مدرجة</h3>
-                        <p style="font-size: 15px; font-weight: 600; line-height:1.6;">لم نتمكن من العثور على اسمك في كشوفات المسجلين.</p>
-                        <hr style="border: 0; border-top: 1px solid #fecaca; margin: 20px 0;">
-                        <small style="color: #991b1b; font-weight: 700;">يرجى التواصل فوراً لتثبيت تسجيلك أو مراجعة الحوالة:</small>
-                        <a href="https://wa.me/${MY_PHONE}?text=${msg}" class="wa-btn" style="background-color: #dc2626;" target="_blank">
-                            <i class="fa-brands fa-whatsapp" style="font-size:1.3rem;"></i> أرسل بياناتك للتحقق
-                        </a>
-                    `;
-                }
-
-                btn.innerHTML = originalBtnText; btn.disabled = false;
-            }, 1200); 
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById('ticket-render-area');
+            const canvas = await html2canvas(element, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const width = pdf.internal.pageSize.getWidth();
+            const height = (canvas.height * width) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 10, width, height);
+            pdf.save(`تذاكر_المرافقين_${document.getElementById('stuId').value}.pdf`);
         }
     </script>
 </body>
