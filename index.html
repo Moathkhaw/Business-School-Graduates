@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- المكتبات اللازمة للتوليد الذاتي -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -111,7 +110,6 @@
 </head>
 <body>
 
-    <!-- شاشة الانترو -->
     <div id="intro-overlay">
         <div class="intro-box">
             <div class="intro-logo"><i class="fa-solid fa-graduation-cap"></i></div>
@@ -121,7 +119,6 @@
         </div>
     </div>
 
-    <!-- المحتوى الرئيسي -->
     <div id="main-content">
         <div class="card">
             <h2><i class="fa-solid fa-shield-halved" style="color: var(--gold); margin-left: 10px;"></i>بوابة الخريجين الآمنة</h2>
@@ -141,7 +138,6 @@
                     <small id="displayMajor" style="color: #64748b; font-weight: bold;"></small>
                 </div>
 
-                <!-- منطقة رسم التذاكر التي سيتم تحويلها لملف -->
                 <div id="ticket-render-area">
                     <h4 style="text-align: center; margin-top: 0; color: #000;">Companion Tickets - Business Summit</h4>
                     <div id="tickets-list"></div>
@@ -169,7 +165,7 @@
     </div>
 
     <script>
-        // داتا الخريجين الكاملة مع أكواد التذاكر (304 خريج)
+        // داتا الخريجين الكاملة مع أكواد التذاكر (312 خريج)
         const graduates = [
             {id: "2200514122", name: "عائشة سعود محمد العياش", major: "التسويق الرقمي", shelf: "1", codes: ["OhbVrpo", "iVgRV5I", "fLBcbfn", "oGMbJmT"]},
             {id: "2200514172", name: "سيرينا اسامة سلامة", major: "تسويق رقمي", shelf: "2", codes: ["PSIAoCL", "rZ3aWZk", "SBvrjn9", "Wvgfygw"]},
@@ -467,14 +463,22 @@
             {id: "2200514032", name: "فوزي سامر الشريف", major: "التسويق الرقمي", shelf: "294", phone: "0799422284", codes: ["KWJqx0K", "0fL751R", "TfORmc9", "55DFoKR"]},
             {id: "2200508011", name: "احمد نضال فتحي صلاح", major: "نظم المعلومات المحاسبية", shelf: "295", phone: "0782534759", codes: ["By2IrbU", "ppmfjT9", "F4J0GYv", "yYaRul6"]},
             {id: "2300504001", name: "معتز فليح", major: "المحاسبة", shelf: "296", phone: "0777704911", codes: ["4I1iJxU", "FtB4mL2", "I9rNbGd", "cWjPmao"]},
-            {id: "0", name: "هيثم", major: "0", shelf: "297", phone: "0", codes: ["hC1LezQ", "WSntg5h", "Vwk4IdS", "P386X8a"]},
-            {id: "0", name: "سند", major: "0", shelf: "298", phone: "0", codes: ["phhuzfC", "0Ogu9Y1", "JPNl3MO", "1EyCaQw"]},
-            {id: ".", name: "حمزة", major: ".", shelf: "299", phone: "0.", codes: ["H5LCTrN", "SlSnfd1", "e8z8nzg", "UmON0hI"]},
-            {id: ".", name: "حذيفة.", major: ".", shelf: "300", phone: "0.", codes: ["iLKktpn", "fW5NF4f", "wbYxVm5", "maWM2Pf"]},
+            {id: "1", name: "هيثم", major: "0", shelf: "297", phone: "0", codes: ["hC1LezQ", "WSntg5h", "Vwk4IdS", "P386X8a"]},
+            {id: "2", name: "سند", major: "0", shelf: "298", phone: "0", codes: ["phhuzfC", "0Ogu9Y1", "JPNl3MO", "1EyCaQw"]},
+            {id: "3", name: "حمزة", major: ".", shelf: "299", phone: "0.", codes: ["H5LCTrN", "SlSnfd1", "e8z8nzg", "UmON0hI"]},
+            {id: "4", name: "حذيفة.", major: ".", shelf: "300", phone: "0.", codes: ["iLKktpn", "fW5NF4f", "wbYxVm5", "maWM2Pf"]},
             {id: "2200503317", name: "محمد فراس عبيد الشبيل", major: "التمويل والمصارف", shelf: "301", phone: "0770356413", codes: ["D87BLZ1", "959eOiV", "zcxcWIw", "8nSZ1U5"]},
             {id: "2150504031", name: "سندس سلامه مفلح العيسى", major: "المحاسبة", shelf: "302", phone: "0778258964", codes: ["9eDqJk8", "oHvPqTf", "Dz56RRi", "ZxJbiEg"]},
             {id: "2300502007", name: "ساره تشطة", major: "ادارة اعمال", shelf: "303", phone: "0791471085", codes: ["FzpMYyR", "foV12d0", "qC2NBzT", "chjyuWn"]},
-            {id: "2100507037", name: "ايمان حسين علي عبيدات", major: "اقتصاد مال واعمال", shelf: "304", phone: "0798300454", codes: ["FlMgpIK", "fjs8AbD", "gpUUDp8", "BvNcYCL"]}
+            {id: "2100507037", name: "ايمان حسين علي عبيدات", major: "اقتصاد مال واعمال", shelf: "304", phone: "0798300454", codes: ["FlMgpIK", "fjs8AbD", "gpUUDp8", "BvNcYCL"]},
+            {id: "2200509208", name: "فاطمه فايز محارب", major: "المحاسبه وقانون الاعمال", shelf: "305", phone: "0779641745", codes: ["LL3Xpa4", "jG6er22", "q252fEy", "Zh87NQc"]},
+            {id: "2200502044", name: "يوسف العامر", major: "إدارة الاعمال", shelf: "306", phone: "0780303811", codes: ["LN7uB3b", "Nq6ALep", "CH6DgLv", "HX2RGa9"]},
+            {id: "2200503202", name: "مالك رائد ضوه", major: "تمويل ومصارف", shelf: "307", phone: "0781952826", codes: ["je4uy82", "Qz2ucpw", "2g9aQjB", "bz8ZtH6"]},
+            {id: "2200514159", name: "محمد عمر احمد كمال", major: "التسويق الرقمي", shelf: "308", phone: "0787783864", codes: ["wG8tk8R", "L27YUw8", "sc7ctvJ", "Cy4n2sz"]},
+            {id: "2200514152", name: "رهف ناجح ابراهيم ابو جحيشه", major: "التسويق الرقمي", shelf: "309", phone: "0785246851", codes: ["SZ6V8bR", "eQ4ekfg", "ne6HRBh", "sp4vXGE"]},
+            {id: "2200514049", name: "نتالا محمود عيسى عيوش", major: "التسويق الرقمي", shelf: "310", phone: "0786075886", codes: ["X468Pvk", "wP2UN9c", "pf4XJuW", "K46fFqp"]},
+            {id: "2200514064", name: "برجس وجيه برجس الطيب", major: "التسويق الرقمي", shelf: "311", phone: "0789729994", codes: ["ez1tw4K", "Ar1S87L", "7D58jGq", "EL8AUx5"]},
+            {id: "2200514227", name: "عبدالرحمن محمد جميل بني جابر", major: "التسويق الرقمي", shelf: "312", phone: "0795037761", codes: ["8H3UHac", "Tz1PGVU", "Pg2WfxJ", "v25wHcw"]}
         ];
 
         window.onload = () => {
